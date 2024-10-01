@@ -1,0 +1,23 @@
+.animate-blink {
+    display: none;
+}
+
+img {
+    border: 1px solid lightgray;
+}
+
+p:has(img) {
+    text-align: center;
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+img[src$='#medium'] {
+    border: 1px solid lightgray;
+    max-width: 70%;
+}
+
+img[src$='#small'] {
+    border: 1px solid lightgray;
+    max-width: 40%;
+ }

@@ -1,14 +1,14 @@
-baseURL = 'https://v2.bravepuffin.com'
+baseURL = 'https://bravepuffin.com'
 languageCode = 'en-us'
 title = 'Brave Puffin'
-pagination.pagerSize = 3
+pagination.pagerSize = 20
 theme = 'maverick'
 
 [permalinks]
   pages = "/:slug"
 
 [params]
-  logo = '/assets/favicon.ico'
+  logo = 'assets/favicon.ico'
   description = "Solar powered, long range autonomous boat"
   author = '...'
 
@@ -20,9 +20,17 @@ theme = 'maverick'
 
 [menu]
   [[menu.main]]
+    identifier = "contact"
+    name = "Contact"
+    url = "/contact/"
+    weight = 2
+
+  [[menu.main]]
     identifier = "posts"
     name = "Posts"
     url = "/posts/"
+    weight = 1
+
 
 [markup]
   [markup.goldmark.renderer]
