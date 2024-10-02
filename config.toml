@@ -1,14 +1,15 @@
 baseURL = 'https://bravepuffin.com'
 languageCode = 'en-us'
 title = 'Brave Puffin'
-pagination.pagerSize = 20
+pagination.pagerSize = 10
 theme = 'maverick'
+googleAnalytics = 'G-42NQX112R9'
 
 [permalinks]
   pages = "/:slug"
 
 [params]
-  logo = 'assets/favicon.ico'
+  logo = 'favicon.ico'
   description = "Solar powered, long range autonomous boat"
   author = '...'
 
