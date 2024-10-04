@@ -7,9 +7,11 @@ tags:
 - build-2024
 ---
 
+#### Launching in 2025! 🚀
+
 ![Puffin 2024 collage](/img/puffin_2024_collage2.jpg)
 
-Lots of new features to cover in the upcoming build posts.
+Lots of new features to cover in the upcoming build posts:
 
 #### Power management "on the curve"
 ![Sigmoid power function](/img/sigmoid_power_budget.png#medium)
@@ -26,4 +28,6 @@ Lots of new features to cover in the upcoming build posts.
 #### Integrated testing
 ![Pool integrated testing](/img/pool_testing.png#medium)
 
-...and more. __Launching in 2025!__ 🚀
+...and more.
+
+Please comment! Or [follow](/contact) to stay connected.

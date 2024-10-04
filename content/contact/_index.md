@@ -1,10 +1,12 @@
 ---
-title: Contact
-description: Contact Brave Puffin's team
+title: Contact | Follow
+description: Contact Brave Puffin's team | Follow for updates
 comments: false
 ---
 
-If you found our boat, or just have questions or comments, please email us at [bravepuffin@gmail.com](mailto:bravepuffin@gmail.com)
+If you found our boat, or just have questions or comments, please __email us at [bravepuffin@gmail.com](mailto:bravepuffin@gmail.com)__
 
-Look for updates and mentions at https://twitter.com/hashtag/bravepuffin
+To receive future updates via email, join https://groups.google.com/g/brave-puffin-updates
+
+Or, follow on https://twitter.com/sla256
 

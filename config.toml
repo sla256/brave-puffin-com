@@ -22,7 +22,7 @@ googleAnalytics = 'G-42NQX112R9'
 [menu]
   [[menu.main]]
     identifier = "contact"
-    name = "Contact"
+    name = "Contact | Follow"
     url = "/contact/"
     weight = 2
 
