@@ -14,7 +14,7 @@ googleAnalytics = 'G-42NQX112R9'
   author = '...'
 
   [params.comments]
-    enabled = false
+    enabled = true
     githubRepo = 'sla256/brave-puffin-com'
     theme = 'github-light'
 
