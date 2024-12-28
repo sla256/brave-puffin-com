@@ -12,7 +12,7 @@ tags:
 ## Intro
 While working on various versions of Brave Puffin in the last 5 years, I ran several dozens of different underwater thruster efficiency tests - to find the best combination of the motor, propeller, ESC, mounting, etc.
 
-The tests were mostly manual - measuring the thrust with a scale, averaging and writing down power consumption in a spreadsheet. Quite time consuming and not that accurate.
+The tests were mostly manual - measuring the thrust with a scale, averaging and writing down power consumption in a spreadsheet. Quite time consuming and not that accurate; the old testing "rig" looked like this:
 
 ![Testing thruster efficiency manually](/img/manual-efficiency-testing.jpg#medium)
 
