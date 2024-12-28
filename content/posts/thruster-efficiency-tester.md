@@ -12,7 +12,7 @@ tags:
 ## Intro
 While working on various versions of Brave Puffin in the last 5 years, I ran several dozens of different underwater thruster efficiency tests - to find the best combination of the motor, propeller, ESC, mounting, etc.
 
-The tests were mostly manual - measuring the thrust with a scale, averaging and writing down power consumption in a spreadsheet. Quite time consuming and not that accurate; the old testing "rig" looked like this:
+The tests were mostly manual - measuring the thrust with a scale, averaging and writing down power consumption in a spreadsheet. Quite time consuming and not that accurate; the **old testing rig** looked like this:
 
 ![Testing thruster efficiency manually](/img/manual-efficiency-testing.jpg#medium)
 
@@ -32,7 +32,7 @@ Testing rig's main requirements were:
 * [Embedded software](https://github.com/sla256/brave-puffin-thruster-efficiency-tester) to perform calibration,
 run the test, measure and record data; Bluetooh controlled.
 
-![Testing rig pictures](/img/testing-rig-pics.jpg#medium)
+![Testing rig pictures](/img/testing-rig-pics.jpg)
 
 ## Test results
 
@@ -74,7 +74,7 @@ However... This was a container (tub) based test, not open water, with quite a b
 
 Testing a couple of generic ESC's, both work well with a high pole construction of the underwater motor.
 
-![30A and 40A ESC's](/img/30a_and_40a_esc.jpg#small)
+![30A and 40A ESC's](/img/30a_and_40a_esc.jpg#medium)
 
 **TL;DR - no efficiency difference**:
 
@@ -86,7 +86,7 @@ Note clumps of data points for 40A ESC. For some reason, its translation of smoo
 
 For this test, I took the smallest ESC I had, rated at 20A and used it in several limited power runs, starting at different temperatures. The idea is to see whether there will be any efficiency difference.
 
-![20A ESC](/img/20A-esc.jpg#small)
+![20A ESC](/img/20A-esc.jpg#medium)
 
 In "cold start" runs, the ESC would start at room temperature of ~20C, and end up at ~40C when the test finishes. Before the "warm start" run, I'd load the ESC up at high power (~11A / ~120W) for a while, so it would warm up to ~60C, immediately followed by a "warm start" test:
 
@@ -98,7 +98,7 @@ I can't see any difference, though I thought there would be some... I remember o
 
 Let's compare efficiency of different propellers: 10" 2-blade APC marine (not shown), 9" 2-blade APC marine, 5" 3-blade generic drone prop and 3" 2-blade T200 prop.
 
-![9" vs. 5" vs. 3" propeller comparison](/img/9in-5in-3in-prop-comparison.jpg#medium)
+![9" vs. 5" vs. 3" propeller comparison](/img/9in-5in-3in-prop-comparison.jpg)
 
 The showdown:
 
