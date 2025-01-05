@@ -1,7 +1,7 @@
 ---
 title: "2020 build: Brave Puffin's steering"
 date: 2020-09-04
-aliases: [build/steering]
+aliases: [/build/steering]
 tags: 
 - build-v1
 ---

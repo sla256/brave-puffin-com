@@ -1,7 +1,7 @@
 ---
 title: "2020 build: Brave Puffin's navigation"
 date: 2020-10-24
-aliases: [build/navigation]
+aliases: [/build/navigation]
 tags:
 - build-2020
 ---
