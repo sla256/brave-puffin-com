@@ -1,6 +1,7 @@
 ---
 title: "2020 attempt: Third week update, July 26th"
 date: 2020-07-26
+aliases: [updates/2020-july-26th-three-weeks-update]
 tags:
 - attempt-2020
 ---

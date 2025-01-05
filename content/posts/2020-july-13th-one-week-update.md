@@ -1,6 +1,7 @@
 ---
 title: "2020 attempt: First week update, July 13th"
 date: 2020-07-13
+aliases: [updates/2020-july-13th-one-week-update]
 tags:
 - attempt-2020
 ---

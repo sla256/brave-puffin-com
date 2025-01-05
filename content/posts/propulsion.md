@@ -1,6 +1,7 @@
 ---
 title: "2020 build: Brave Puffin's Propulsion - motors and propellers"
 date: 2020-07-24
+aliases: [build/propulsion]
 tags:
 - build-2020
 ---

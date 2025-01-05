@@ -1,6 +1,7 @@
 ---
 title: "September 2019 test mission"
 date: 2019-09-21
+aliases: [updates/2019-september-test-mission]
 tags:
 - build-2020
 ---

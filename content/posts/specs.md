@@ -1,6 +1,7 @@
 ---
 title: "2020 build: Specs"
 date: 2020-07-11
+aliases: [build/specs]
 tags:
 - build-2020
 ---

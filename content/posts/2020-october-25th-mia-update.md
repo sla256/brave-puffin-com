@@ -1,6 +1,7 @@
 ---
 title: "2020 attempt: Brave Puffin is MIA"
 date: 2020-10-25
+aliases: [updates/2020-october-25th-mia-update]
 tags:
 - attempt-2020
 ---

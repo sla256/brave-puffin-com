@@ -1,6 +1,7 @@
 ---
 title: "2020 attempt: Launched on July 5th!"
 date: 2020-07-05
+aliases: [updates/2020-july-5th-launch]
 tags:
 - attempt-2020
 ---

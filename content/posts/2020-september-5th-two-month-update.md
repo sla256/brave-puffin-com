@@ -1,6 +1,7 @@
 ---
 title: "2020 attempt: Two month update, September 5th"
 date: 2020-09-05
+aliases: [updates/2020-september-5th-two-month-update]
 tags:
 - attempt-2020
 ---
