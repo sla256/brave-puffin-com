@@ -11,7 +11,7 @@ comments: false
 ##### Distance from launch point
 
 {{< rawhtml >}}
-<div id="map"></div>
+<div id="map" style="height: 500px;"></div>
 <script>
     function initMap() {
         var map = new google.maps.Map(
