@@ -60,7 +60,7 @@ googleAnalytics = 'G-42NQX112R9'
 
 [outputFormats.RSS]
   mediatype = "application/rss"
-  baseName = "atom"
+  baseName = "index"
 
 [outputFormats.JSON]
   mediatype = "application/json"
