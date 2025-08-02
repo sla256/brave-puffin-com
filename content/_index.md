@@ -35,23 +35,24 @@
         );
 
         var routeCoordinates = [
-            {lat:42.4904299981991,lng:-70.8491223180837}, // 1 Just off Bocashton
-            {lat:42.4875058382777,lng:-70.8490166646259}, // 2 South off Bocashton
-            {lat:42.4791178764948,lng:-70.8483246548008}, // 3 West of Roaring Bull
+            {lat:42.4717049065037,lng:-70.8835156366651}, // 1 Just off Philips
+            {lat:42.4721770575423,lng:-70.8787652750936}, // 2 West of Sammy Rock
+            {lat:42.4726399178722,lng:-70.8637017183596}, // 3 Between Sammy and Ram Islet
+            {lat:42.4722935659977,lng:-70.8484569426826}, // 3.5 Half way to waypoint 4
             {lat:42.4709720424515,lng:-70.8338827977422}, // 4 South of Tinker's Island
             {lat:42.4707998518976,lng:-70.671701719999}, // 5 South of Gloucester
             {lat:42.4681078592516,lng:-70.272492472769}, // 6 North of Provincetown
             {lat:43.3275102927984,lng:-69.4393972474251}, // 7 South of Bristol
             {lat:43.7775620973958,lng:-67.3437339189125}, // 8 West of Yarmouth
-            {lat:43.0613941947938,lng:-66.60215695585}, // 9 Southwest of Clark's Harbour
+            {lat:42.711240907309,lng:-68.4312606141525}, // 9 Middle of Gulf of Maine
             {lat:42.4681078592516,lng:-70.272492472769}, // 6 North of Provincetown
             {lat:42.4707998518976,lng:-70.671701719999}, // 5 South of Gloucester
             {lat:42.4709720424515,lng:-70.8338827977422}, // 4 South of Tinker's Island
-            {lat:42.4791178764948,lng:-70.8483246548008}, // 3 West of Roaring Bull
-            {lat:42.4875058382777,lng:-70.8490166646259}, // 2 South off Bocashton
-            {lat:42.4904299981991,lng:-70.8491223180837}, // 1 Just off Bocashton
-            {lat:42.4914809259141,lng:-70.8480092679865}, // 0 Beach
-          ];
+            {lat:42.4722935659977,lng:-70.8484569426826}, // 3.5 Half way to waypoint 4
+            {lat:42.4726399178722,lng:-70.8637017183596}, // 3 Between Sammy and Ram Islet
+            {lat:42.4721770575423,lng:-70.8787652750936}, // 2 West of Sammy Rock
+            {lat:42.4717049065037,lng:-70.8835156366651}, // 1 Just off Philips
+        ];
 
         var routePath = new google.maps.Polyline({
             path: routeCoordinates,
