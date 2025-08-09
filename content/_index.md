@@ -1,11 +1,27 @@
 
-**Brave Puffin** is a small autonomous, solar powered, long range boat. It is 1.9 meters long, weighing 35 kg. Brave Puffin is designed to compete in the annual [Microtransat Challenge](https://www.microtransat.org/) in the non sailing, fully autonomous class - that is, to cross the Atlantic Ocean by itself.
+**Brave Puffin** is a small, solar powered, long range, autonomous boat. It is 1.9 meters long, weighing 35 kg. Brave Puffin is designed to compete in the annual [Microtransat Challenge](https://www.microtransat.org/) in the non sailing, fully autonomous class - that is, to cross the Atlantic Ocean by itself.
 
-## Track Puffin's "Gulf of Maine 2025 Tour" test mission
+## Track Puffin's "Gulf of Maine 2025 Roundtrip" test mission
 
 {{< rawhtml >}}
 
 <div id="map" style="height: 500px;"></div>
+
+<table>
+<!-- <tr><th>Last update, minutes ago</th><th>Total distance, km</th><th>Battery, V</th></tr> -->
+<tr><th>Last update, minutes ago</th><td><div id="last-transmission-ago"></div></td></tr>
+<tr><th>Total distance, km</th><td><div id="total-distance"></div></td>
+<tr><th>Battery, V</th><td><div id="battery-voltage"></div></td></tr>
+<tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
+<tr><th>Onboard humidity, %</th><td><div id="onboard-humidity"></div></td></tr>
+<tr><th>Left motor current, A</th><td><div id="left-motor-amps"></div></td></tr>
+<tr><th>Right motor current, A</th><td><div id="right-motor-amps"></div></td></tr>
+<tr><th>Solar panel current, A</th><td><div id="solar-amps"></div></td></tr>
+<tr><th>Pitch</th><td><div id="pitch"></div></td></tr>
+<tr><th>Roll</th><td><div id="roll"></div></td></tr>
+<tr><th>Distance to next waypoint, km</th><td><div id="distance-to-next"></div></td></tr>
+</table>
+
 
 {{< setmapsapikey >}}
 
@@ -66,41 +82,34 @@
             strokeWeight: 2
         });
         routePath.setMap(map);
-        // addWaypointMarkers(routeCoordinates, map);
-
-        // var westernStartFinishLineCoordinates = [
-        //     {lat:48,lng:-47},
-        //     {lat:45.5,lng:-47},
-        //     {lat:40,lng:-65},
-        //     {lat:30,lng:-77},
-        //     {lat:20,lng:-59},
-        //     {lat:10,lng:-56},
-        // ];
-
-        // var westernStartFinishLinePath = new google.maps.Polyline({
-        //     path: westernStartFinishLineCoordinates,
-        //     geodesic: true,
-        //     strokeColor: '#00aa00',
-        //     strokeOpacity: 1.0,
-        //     strokeWeight: 1
-        // });
-        // westernStartFinishLinePath.setMap(map);
 
         fetch("https://tracking-data.bravepuffin.com/2025-tracking-data.json")
             .then(response => response.json())
             .then((allPositionsArray) => {
-                var testingPath = new google.maps.Polyline({
+                var missionPath = new google.maps.Polyline({
                     path: allPositionsArray,
                     geodesic: true,
                     strokeColor: '#FF0000',
                     strokeOpacity: 1.0,
                     strokeWeight: 3
                 });
-                testingPath.setMap(map);
+                missionPath.setMap(map);
+
+                var prevPosition = new google.maps.LatLng(routeCoordinates[0].lat, routeCoordinates[0].lng);
+                var totalDistance = 0;
+
+                allPositionsArray.forEach((position, index) => {
+                    var currentPosition = new google.maps.LatLng(position.lat, position.lng);
+                    var distanceFromPrev = google.maps.geometry.spherical.computeDistanceBetween(prevPosition, currentPosition);
+                    totalDistance += distanceFromPrev;
+                    prevPosition = currentPosition;
+                    allPositionsArray[index].totalDistanceKm = Math.round(totalDistance/1000);
+                    allPositionsArray[index].distanceFromPrevKm = distanceFromPrev/1000;
+                });
 
                 addSampledMarkers(allPositionsArray, map);
 
-                var lastPositionIndex = allPositionsArray.length - 1;
+                const lastPositionIndex = allPositionsArray.length - 1;
                 // document.getElementById("last-known-coordinates").innerHTML = 
                 //     allPositionsArray[lastPositionIndex].lat.toFixed(3) + "," + 
                 //     allPositionsArray[lastPositionIndex].lng.toFixed(3) + " on " +
@@ -108,22 +117,21 @@
 
                 map.panTo(allPositionsArray[lastPositionIndex]);
 
-                // var launchPoint = new google.maps.LatLng(routeCoordinates[0].lat,
-                //     routeCoordinates[0].lng);
-                // var currentCoord = new google.maps.LatLng(allPositionsArray[lastPositionIndex].lat,
-                //     allPositionsArray[lastPositionIndex].lng);
+                const currentTimeEpochSeconds = Math.floor(Date.now() / 1000);
+                const lastTransmissionTime = allPositionsArray[lastPositionIndex].epoch;
+                const timeDifferenceInMinutes = Math.floor((currentTimeEpochSeconds - lastTransmissionTime) / 60);
 
-                // var firstReportedLocation = new google.maps.LatLng(allPositionsArray[0].lat,
-                //     allPositionsArray[0].lng);
-                // var secondReportedLocation = new google.maps.LatLng(allPositionsArray[1].lat,
-                //     allPositionsArray[1].lng);
-
-                // var distance = google.maps.geometry.spherical.computeDistanceBetween(
-                //     firstReportedLocation, secondReportedLocation);
-
-                // document.getElementById("distance-from-launch-point").innerHTML = 
-                //     Math.round(distanceFromLaunch / 1000) + " km from launch point";
-                
+                document.getElementById("last-transmission-ago").innerHTML = timeDifferenceInMinutes;
+                document.getElementById("total-distance").innerHTML = Math.round(totalDistance/1000);
+                document.getElementById("battery-voltage").innerHTML = allPositionsArray[lastPositionIndex].batteryVoltage;
+                document.getElementById("onboard-temp").innerHTML = allPositionsArray[lastPositionIndex].onboardTemperatureC;
+                document.getElementById("onboard-humidity").innerHTML = allPositionsArray[lastPositionIndex].onboardHumidity;
+                document.getElementById("left-motor-amps").innerHTML = allPositionsArray[lastPositionIndex].motorLeftCurrentDrawAmps;
+                document.getElementById("right-motor-amps").innerHTML = allPositionsArray[lastPositionIndex].motorRightCurrentDrawAmps;
+                document.getElementById("solar-amps").innerHTML = allPositionsArray[lastPositionIndex].solarCurrentAmps;
+                document.getElementById("pitch").innerHTML = allPositionsArray[lastPositionIndex].pitch;
+                document.getElementById("roll").innerHTML = allPositionsArray[lastPositionIndex].roll;
+                document.getElementById("distance-to-next").innerHTML = allPositionsArray[lastPositionIndex].distanceToNexWaypointKm;
             })
             .catch(err => { throw err });
     }
@@ -145,8 +153,8 @@
                 position: allPositionsArray[i],
                 map: map,
                 // title: allPositionsArray[i].epoch,
-                label: { text: (i + 1).toString(), color: 'white', fontSize: "8px" },
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5 }
+                label: { text: allPositionsArray[i].totalDistanceKm.toString(), color: 'white', fontSize: "8px" },
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6 }
             });
         }
     }
