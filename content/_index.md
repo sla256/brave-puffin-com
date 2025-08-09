@@ -21,6 +21,8 @@
 
     async function initMap() {
         const { Map } = await google.maps.importLibrary("maps");
+        await google.maps.importLibrary("geometry");
+
         map = new Map(
             document.getElementById('map'),
             {
@@ -35,8 +37,8 @@
         );
 
         var routeCoordinates = [
-            {lat:42.4717049065037,lng:-70.8835156366651}, // 1 Just off Philips
-            {lat:42.4721770575423,lng:-70.8787652750936}, // 2 West of Sammy Rock
+            {lat:42.4707585696414,lng:-70.8805977194627}, // 1 On Philips Beach off entrance
+            {lat:42.4721770575423,lng:-70.8787652750936}, // 2.5 West of Sammy Rock
             {lat:42.4726399178722,lng:-70.8637017183596}, // 3 Between Sammy and Ram Islet
             {lat:42.4722935659977,lng:-70.8484569426826}, // 3.5 Half way to waypoint 4
             {lat:42.4709720424515,lng:-70.8338827977422}, // 4 South of Tinker's Island
@@ -44,14 +46,16 @@
             {lat:42.4681078592516,lng:-70.272492472769}, // 6 North of Provincetown
             {lat:43.3275102927984,lng:-69.4393972474251}, // 7 South of Bristol
             {lat:43.7775620973958,lng:-67.3437339189125}, // 8 West of Yarmouth
+            {lat:42.9503247257461,lng:-66.0012653333508}, // 8.5 South of Yarmouth
             {lat:42.711240907309,lng:-68.4312606141525}, // 9 Middle of Gulf of Maine
             {lat:42.4681078592516,lng:-70.272492472769}, // 6 North of Provincetown
             {lat:42.4707998518976,lng:-70.671701719999}, // 5 South of Gloucester
             {lat:42.4709720424515,lng:-70.8338827977422}, // 4 South of Tinker's Island
             {lat:42.4722935659977,lng:-70.8484569426826}, // 3.5 Half way to waypoint 4
             {lat:42.4726399178722,lng:-70.8637017183596}, // 3 Between Sammy and Ram Islet
-            {lat:42.4721770575423,lng:-70.8787652750936}, // 2 West of Sammy Rock
-            {lat:42.4717049065037,lng:-70.8835156366651}, // 1 Just off Philips
+            {lat:42.4721770575423,lng:-70.8787652750936}, // 2.5 West of Sammy Rock
+            {lat:42.4677522580432,lng:-70.8823853294767}, // 2 Off Philips Beach south end
+            {lat:42.4683604731656,lng:-70.8857309408058}, // 1 On Philips Beach south end
         ];
 
         var routePath = new google.maps.Polyline({
@@ -97,22 +101,28 @@
                 addSampledMarkers(allPositionsArray, map);
 
                 var lastPositionIndex = allPositionsArray.length - 1;
-                document.getElementById("last-known-coordinates").innerHTML = 
-                    allPositionsArray[lastPositionIndex].lat.toFixed(3) + "," + 
-                    allPositionsArray[lastPositionIndex].lng.toFixed(3) + " on " +
-                    new Date(parseInt(allPositionsArray[lastPositionIndex].epoch)).toUTCString();
+                // document.getElementById("last-known-coordinates").innerHTML = 
+                //     allPositionsArray[lastPositionIndex].lat.toFixed(3) + "," + 
+                //     allPositionsArray[lastPositionIndex].lng.toFixed(3) + " on " +
+                //     new Date(parseInt(allPositionsArray[lastPositionIndex].epoch)).toUTCString();
 
                 map.panTo(allPositionsArray[lastPositionIndex]);
 
-                var launchPoint = new google.maps.LatLng(routeCoordinates[0].lat,
-                    routeCoordinates[0].lng);
-                var currentCoord = new google.maps.LatLng(allPositionsArray[lastPositionIndex].lat,
-                    allPositionsArray[lastPositionIndex].lng);
+                // var launchPoint = new google.maps.LatLng(routeCoordinates[0].lat,
+                //     routeCoordinates[0].lng);
+                // var currentCoord = new google.maps.LatLng(allPositionsArray[lastPositionIndex].lat,
+                //     allPositionsArray[lastPositionIndex].lng);
 
-                var distanceFromLaunch = google.maps.geometry.spherical.computeDistanceBetween(
-                    launchPoint, currentCoord);
-                document.getElementById("distance-from-launch-point").innerHTML = 
-                    Math.round(distanceFromLaunch / 1000) + " km from launch point";
+                // var firstReportedLocation = new google.maps.LatLng(allPositionsArray[0].lat,
+                //     allPositionsArray[0].lng);
+                // var secondReportedLocation = new google.maps.LatLng(allPositionsArray[1].lat,
+                //     allPositionsArray[1].lng);
+
+                // var distance = google.maps.geometry.spherical.computeDistanceBetween(
+                //     firstReportedLocation, secondReportedLocation);
+
+                // document.getElementById("distance-from-launch-point").innerHTML = 
+                //     Math.round(distanceFromLaunch / 1000) + " km from launch point";
                 
             })
             .catch(err => { throw err });
@@ -134,9 +144,9 @@
             new google.maps.Marker({
                 position: allPositionsArray[i],
                 map: map,
-                title: allPositionsArray[i].epoch,
-                label: { text: (i + 1).toString(), color: 'white', fontSize: "6px" },
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 4 }
+                // title: allPositionsArray[i].epoch,
+                label: { text: (i + 1).toString(), color: 'white', fontSize: "8px" },
+                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 5 }
             });
         }
     }
