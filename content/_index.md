@@ -9,7 +9,7 @@
 
 <table>
 <!-- <tr><th>Last update, minutes ago</th><th>Total distance, km</th><th>Battery, V</th></tr> -->
-<tr><th>Last update, minutes ago</th><td><div id="last-transmission-ago"></div></td></tr>
+<tr><th>Last update</th><td><div id="last-transmission-time"></div></td></tr>
 <tr><th>Total distance, km</th><td><div id="total-distance"></div></td>
 <tr><th>Average speed - last segment, km/h</th><td><div id="average-speed-last"></div></td>
 <tr><th>Average speed - mission, km/h</th><td><div id="average-speed-mission"></div></td>
@@ -117,6 +117,7 @@
 
                 const currentTimeEpochSeconds = Math.floor(Date.now() / 1000);
                 const lastTransmissionTime = allPositionsArray[lastPositionIndex].epoch;
+                const lastTransmissionTimeLocal = new Date(lastTransmissionTime * 1000).toLocaleString();
                 const timeDifferenceInMinutes = Math.floor((currentTimeEpochSeconds - lastTransmissionTime) / 60);
                 
                 const lastSegmentTimeHours = (allPositionsArray[lastPositionIndex].epoch - allPositionsArray[lastPositionIndex -1].epoch) / 3600;
@@ -124,9 +125,9 @@
                 
                 const missionTimeHours = (allPositionsArray[lastPositionIndex].epoch - allPositionsArray[0].epoch) / 3600;
                 const missionDistanceKm = allPositionsArray[lastPositionIndex].totalDistanceKm;
-                const missionAverageSpeedKmh = missionDistanceKm / missionTimeHours;
+                const missionAverageSpeedKmh = missionDistanceKm / missionTimeHours; // slightly inflated due to first position vs. course start difference
 
-                document.getElementById("last-transmission-ago").innerHTML = timeDifferenceInMinutes;
+                document.getElementById("last-transmission-time").innerHTML = lastTransmissionTimeLocal;
                 document.getElementById("total-distance").innerHTML = Math.round(totalDistance/1000);
                 document.getElementById("average-speed-last").innerHTML = lastSegmentSpeedKmh.toFixed(1);
                 document.getElementById("average-speed-mission").innerHTML = missionAverageSpeedKmh.toFixed(1);
@@ -161,7 +162,7 @@
                 map: map,
                 // title: allPositionsArray[i].epoch,
                 label: { text: allPositionsArray[i].totalDistanceKm.toString(), color: 'white', fontSize: "8px" },
-                icon: { path: google.maps.SymbolPath.CIRCLE, scale: 6 }
+                icon: { path: google.maps.SymbolPath.CIRCLE, strokeWeight: 2, strokeColor: '#111111', scale: 6 }
             });
         }
     }
