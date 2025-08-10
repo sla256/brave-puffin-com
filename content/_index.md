@@ -161,7 +161,7 @@
                 position: allPositionsArray[i],
                 map: map,
                 // title: allPositionsArray[i].epoch,
-                label: { text: allPositionsArray[i].totalDistanceKm.toString(), color: 'white', fontSize: "10px" },
+                label: { text: allPositionsArray[i].totalDistanceKm.toString(), color: 'white', fontSize: "10px", fontWeight: 'bold' },
                 icon: { path: google.maps.SymbolPath.CIRCLE, strokeWeight: 2, strokeColor: '#111111', scale: 6 }
             });
         }
