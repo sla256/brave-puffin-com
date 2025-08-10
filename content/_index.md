@@ -171,7 +171,12 @@
 </script>
 {{< /rawhtml >}}
 
+[Full mission data](/track/2025_mission_data)
+
+![Brave Puffin 2024 on a cart](img/2024-puffin-cart.jpg)
+
 ![Brave Puffin 2024](img/2024-puffin-pool-shot1_small.jpg)
-  
+
+
 [Puffin 2024](/posts/puffin-2024-announcement) is a younger, bigger brother of Puffin 2020, which was [launched in July of 2020](/posts/2020-july-5th-launch/) and went [MIA 2 months later](/posts/2020-october-25th-mia-update/).
 

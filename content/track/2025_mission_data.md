@@ -8,7 +8,7 @@ comments: false
 
 <table id="mission-data">
 <th>i</th>
-<th>time</th>
+<th>Time</th>
 <th>Vb</th>
 <th>Ib</th>
 <th>Is</th>
