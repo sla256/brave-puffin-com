@@ -44,7 +44,7 @@
         map = new Map(
             document.getElementById('map'),
             {
-                zoom: 10,
+                zoom: 9,
                 center: {lat: 42.56331230826569, lng: -70.47170181165495},
                 streetViewControl: false,
                 mapTypeControl: false,
