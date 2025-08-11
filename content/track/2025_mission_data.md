@@ -7,30 +7,32 @@ comments: false
 {{< rawhtml >}}
 
 <table id="mission-data">
-<th>i</th>
-<th>Time</th>
-<th>Vb</th>
-<th>Ib</th>
-<th>Is</th>
-<th>Te</th>
-<th>Hu</th>
-<th>PWMc</th>
-<th>Il</th>
-<th>Ir</th>
-<th>PWMl</th>
-<th>PWMr</th>
-<th>Rn</th>
-<th>Rt</th>
-<th>Sr</th>
-<th>Er</th>
-<th>Es</th>
-<th>Wp</th>
-<th>Dn</th>
-<th>B</th>
-<th>M</th>
-<th>He</th>
-<th>Pi</th>
-<th>Ro</th>
+<tr id="header-row">
+    <th>i</th>
+    <th>Time</th>
+    <th>Vb</th>
+    <th>Ib</th>
+    <th>Is</th>
+    <th>Te</th>
+    <th>Hu</th>
+    <th>PWMc</th>
+    <th>Il</th>
+    <th>Ir</th>
+    <th>PWMl</th>
+    <th>PWMr</th>
+    <th>Rn</th>
+    <th>Rt</th>
+    <th>Sr</th>
+    <th>Er</th>
+    <th>Es</th>
+    <th>Wp</th>
+    <th>Dn</th>
+    <th>B</th>
+    <th>M</th>
+    <th>He</th>
+    <th>Pi</th>
+    <th>Ro</th>
+</tr>
 </table>
 
 <script>
@@ -38,10 +40,11 @@ fetch("https://tracking-data.bravepuffin.com/2025-tracking-data.json")
     .then(response => response.json())
     .then((allDataPointsArray) => {
         const table = document.getElementById("mission-data");
-        allDataPointsArray.forEach((dataPoint, index) => {
+        for (let i = allDataPointsArray.length - 1; i >= 0; i--) {
+            const dataPoint = allDataPointsArray[i];
             const row = document.createElement("tr");
             row.innerHTML = `
-            <td>${index}</td>
+            <td>${i}</td>
             <td>${new Date(dataPoint.epoch * 1000).toLocaleString()}</td>
             <td>${dataPoint.batteryVoltage}</td>
             <td>${dataPoint.batteryCurrent}</td>
@@ -67,7 +70,7 @@ fetch("https://tracking-data.bravepuffin.com/2025-tracking-data.json")
             <td>${dataPoint.roll}</td>
             `;
             table.appendChild(row);
-        });
+        };
     })
     .catch(err => { throw err });
 </script>
