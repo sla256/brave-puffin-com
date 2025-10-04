@@ -73,7 +73,7 @@
             {lat:42.4726399178722,lng:-70.8637017183596}, // 3 Between Sammy and Ram Islet
             {lat:42.4721770575423,lng:-70.8787652750936}, // 2.5 West of Sammy Rock
             {lat:42.4677522580432,lng:-70.8823853294767}, // 2 Off Philips Beach south end
-            {lat:42.4683604731656,lng:-70.8857309408058}, // 1 On Philips Beach south end
+            {lat:42.4684282305061,lng:-70.8870104172954}, // 1 On Philips Beach south end            
         ];
 
         var routePath = new google.maps.Polyline({
@@ -85,7 +85,7 @@
         });
         routePath.setMap(map);
 
-        fetch("https://tracking-data.bravepuffin.com/2025-tracking-data.json")
+        fetch("https://tracking-data.bravepuffin.com/2025-tracking-data-2.json")
             .then(response => response.json())
             .then((allPositionsArray) => {
                 var missionPath = new google.maps.Polyline({
@@ -171,7 +171,7 @@
 </script>
 {{< /rawhtml >}}
 
-[Full mission data](/track/2025_mission_data)
+[Full mission data](/track/2025_mission_data_2)
 
 ![Brave Puffin 2024 on a cart](img/2024-puffin-cart.jpg)
 

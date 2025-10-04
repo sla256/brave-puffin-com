@@ -32,6 +32,8 @@ comments: false
     <th>He</th>
     <th>Pi</th>
     <th>Ro</th>
+    <th>Lat</th>
+    <th>Lon</th>
 </tr>
 </table>
 
@@ -68,6 +70,8 @@ fetch("https://tracking-data.bravepuffin.com/2025-tracking-data-2.json")
             <td>${dataPoint.compassTrueHeading}</td>
             <td>${dataPoint.pitch}</td>
             <td>${dataPoint.roll}</td>
+            <td>${dataPoint.lat}</td>
+            <td>${dataPoint.lng}</td>
             `;
             table.appendChild(row);
         };
