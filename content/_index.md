@@ -1,4 +1,4 @@
-Brave Puffin is a small solar powered, long range, autonomous boat.
+Brave Puffin is a solar powered, long range, autonomous boat.
 
 ![Brave Puffin on the water](/img/puffin-horizon.jpg)
 
