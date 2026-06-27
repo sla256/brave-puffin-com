@@ -13,7 +13,6 @@ In progress! All of the lessons and best features from prior Puffins applied, pl
 
 * Single propulsion motor, worm gear driven rudder
 * Durable HDPE hull, floation foam filled
-* Solar AND wind powered (ultrasonic wind sensor, automatic sail deployment)
 * ESP32 MCU on purpose-build PCB, Iridium SBD comms, OTA (hopefully)
 * Custom ESP-NOW based remote with e-ink display
 
