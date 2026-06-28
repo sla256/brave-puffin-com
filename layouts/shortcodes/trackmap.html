@@ -1,0 +1,168 @@
+{{- /*
+  Live mission map. Fetches the public JSON exported by the backend
+  export-public-mission lambda and renders route + travelled track + telemetry.
+  Params:
+    table  - "false" to hide the telemetry table (map only). Default: shown.
+    height - map height CSS value. Default: 500px.
+*/ -}}
+{{- $showTable := ne (.Get "table") "false" -}}
+{{- $height := .Get "height" | default "500px" -}}
+
+<div id="map" style="height: {{ $height }};"></div>
+
+{{ if $showTable }}
+<table>
+<tr><th>Last update</th><td><div id="last-transmission-time"></div></td></tr>
+<tr><th>Total distance, km</th><td><div id="total-distance"></div></td></tr>
+<tr><th>Average speed - mission, km/h</th><td><div id="average-speed-mission"></div></td></tr>
+<tr><th>Speed - last fix, km/h</th><td><div id="speed-last"></div></td></tr>
+<tr><th>Battery, V</th><td><div id="battery-voltage"></div></td></tr>
+<tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
+<tr><th>Onboard humidity, %</th><td><div id="onboard-humidity"></div></td></tr>
+<tr><th>Distance to next waypoint, km</th><td><div id="distance-to-next"></div></td></tr>
+</table>
+{{ end }}
+
+<script>
+    const googleMapsApiKey = '{{ getenv "HUGO_MAPS_API_KEY" }}';
+</script>
+
+<script>
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+    key: googleMapsApiKey,
+    v: "weekly",
+  });
+</script>
+
+<script>
+    // Single public JSON exported periodically by the backend export-public-mission
+    // lambda: { route, summary, positions:[{epoch,lat,lng,bearing,...}] }.
+    const DATA_URL = "https://tracking-data.bravepuffin.com/2026-tracking-data.json";
+
+    let map;
+
+    async function initMap() {
+        const { Map } = await google.maps.importLibrary("maps");
+        await google.maps.importLibrary("geometry");
+
+        map = new Map(document.getElementById('map'), {
+            zoom: 10,
+            center: { lat: 42.47, lng: -70.88 },
+            mapTypeId: 'hybrid',
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
+            scaleControl: true,
+            gestureHandling: 'greedy'
+        });
+
+        const data = await fetch(DATA_URL).then(r => r.json());
+        drawRoute(data.route, data.summary.last_waypoint_index);
+        drawTrack(data.positions);
+        fillSummary(data.summary);
+    }
+
+    // Planned route: gray line + green waypoint markers, current waypoint highlighted.
+    function drawRoute(route, currentWpIndex) {
+        if (!route || !route.waypoints || !route.waypoints.length) return;
+        const path = route.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lon }));
+
+        new google.maps.Polyline({
+            path, geodesic: true, strokeColor: '#cccccc',
+            strokeOpacity: 0.9, strokeWeight: 2, map
+        });
+
+        route.waypoints.forEach((wp, i) => {
+            const isCurrent = (currentWpIndex != null && i === currentWpIndex);
+            new google.maps.Marker({
+                position: { lat: wp.lat, lng: wp.lon },
+                map,
+                label: { text: String(i), color: '#fff', fontSize: '9px', fontWeight: isCurrent ? 'bold' : 'normal' },
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: isCurrent ? '#f0883e' : '#3fb950',
+                    fillOpacity: isCurrent ? 1 : 0.8,
+                    strokeColor: '#fff', strokeWeight: isCurrent ? 2 : 1,
+                    scale: isCurrent ? 8 : 6
+                },
+                title: 'WP ' + i + (wp.label ? ' - ' + wp.label : '')
+            });
+        });
+    }
+
+    // Travelled track: red line, sampled cumulative-distance markers, boat at the
+    // latest fix as a bearing-rotated arrow. Zooms to fit the travelled track.
+    function drawTrack(positions) {
+        if (!positions || !positions.length) return;
+        const path = positions.map(p => ({ lat: p.lat, lng: p.lng }));
+
+        new google.maps.Polyline({
+            path, geodesic: true, strokeColor: '#FF0000',
+            strokeOpacity: 0.9, strokeWeight: 3, map
+        });
+
+        // Cumulative distance per point, for the sampled km labels.
+        let totalM = 0;
+        positions[0].cumKm = 0;
+        for (let i = 1; i < positions.length; i++) {
+            totalM += google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(positions[i - 1].lat, positions[i - 1].lng),
+                new google.maps.LatLng(positions[i].lat, positions[i].lng));
+            positions[i].cumKm = Math.round(totalM / 1000);
+        }
+
+        const step = Math.round(positions.length / 10) + 1;
+        for (let i = 0; i < positions.length; i += step) {
+            new google.maps.Marker({
+                position: { lat: positions[i].lat, lng: positions[i].lng },
+                map,
+                label: { text: positions[i].cumKm.toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' },
+                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: 'red', fillOpacity: 1, strokeColor: 'red', strokeWeight: 2, scale: 6 }
+            });
+        }
+
+        const last = positions[positions.length - 1];
+        new google.maps.Marker({
+            position: { lat: last.lat, lng: last.lng },
+            map, title: 'Brave Puffin',
+            icon: {
+                path: 'M 0,-14 L 8,8 L 0,3 L -8,8 Z',
+                fillColor: '#1e90ff', fillOpacity: 1,
+                strokeColor: '#ffffff', strokeWeight: 1.5,
+                scale: 1.2, rotation: last.bearing || 0,
+                anchor: new google.maps.Point(0, 0)
+            }
+        });
+
+        // Fit to the travelled track so the map frames exactly what's been done.
+        // Single point -> just center it. Clamp deep zoom (hybrid tiles thin out
+        // over open water).
+        if (path.length >= 2) {
+            const bounds = new google.maps.LatLngBounds();
+            path.forEach(p => bounds.extend(p));
+            map.fitBounds(bounds, 40);
+            google.maps.event.addListenerOnce(map, 'idle', () => {
+                if (map.getZoom() > 15) map.setZoom(15);
+            });
+        } else {
+            map.setCenter({ lat: last.lat, lng: last.lng });
+            map.setZoom(13);
+        }
+    }
+
+    function fillSummary(s) {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
+        const fix1 = x => (x == null ? '-' : x.toFixed(1));
+        // toLocaleString() -> visitor's own locale format and timezone.
+        set('last-transmission-time', s.last_update_epoch ? new Date(s.last_update_epoch * 1000).toLocaleString() : '-');
+        set('total-distance', s.distance_km == null ? '-' : Math.round(s.distance_km));
+        set('average-speed-mission', fix1(s.avg_speed_kmh));
+        set('speed-last', s.last_speed_mh == null ? '-' : (s.last_speed_mh / 1000).toFixed(1));
+        set('battery-voltage', s.last_battery_mv == null ? '-' : (s.last_battery_mv / 1000).toFixed(2));
+        set('onboard-temp', s.last_temp_c == null ? '-' : s.last_temp_c);
+        set('onboard-humidity', s.last_humidity_pct == null ? '-' : s.last_humidity_pct);
+        set('distance-to-next', s.last_dist_to_wp_m == null ? '-' : (s.last_dist_to_wp_m / 1000).toFixed(2));
+    }
+
+    initMap();
+</script>
