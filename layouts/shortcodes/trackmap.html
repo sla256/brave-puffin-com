@@ -60,6 +60,28 @@
         drawRoute(data.route, data.summary.last_waypoint_index);
         drawTrack(data.positions);
         fillSummary(data.summary);
+        fitToMission(data.route, data.positions);
+    }
+
+    // Frame the whole mission at once: planned route waypoints + travelled track.
+    // Falls back to centering when there's nothing to bound. Clamps deep zoom
+    // (hybrid tiles thin out over open water).
+    function fitToMission(route, positions) {
+        const bounds = new google.maps.LatLngBounds();
+        let n = 0;
+        (route?.waypoints || []).forEach(wp => { bounds.extend({ lat: wp.lat, lng: wp.lon }); n++; });
+        (positions || []).forEach(p => { bounds.extend({ lat: p.lat, lng: p.lng }); n++; });
+
+        if (n === 0) return;
+        if (n === 1) {
+            map.setCenter(bounds.getCenter());
+            map.setZoom(13);
+            return;
+        }
+        map.fitBounds(bounds, 40);
+        google.maps.event.addListenerOnce(map, 'idle', () => {
+            if (map.getZoom() > 15) map.setZoom(15);
+        });
     }
 
     // Planned route: gray line + green waypoint markers, current waypoint highlighted.
@@ -133,21 +155,6 @@
                 anchor: new google.maps.Point(0, 0)
             }
         });
-
-        // Fit to the travelled track so the map frames exactly what's been done.
-        // Single point -> just center it. Clamp deep zoom (hybrid tiles thin out
-        // over open water).
-        if (path.length >= 2) {
-            const bounds = new google.maps.LatLngBounds();
-            path.forEach(p => bounds.extend(p));
-            map.fitBounds(bounds, 40);
-            google.maps.event.addListenerOnce(map, 'idle', () => {
-                if (map.getZoom() > 15) map.setZoom(15);
-            });
-        } else {
-            map.setCenter({ lat: last.lat, lng: last.lng });
-            map.setZoom(13);
-        }
     }
 
     function fillSummary(s) {
