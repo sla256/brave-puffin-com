@@ -133,6 +133,22 @@
             positions[i].cumKm = Math.round(totalM / 1000);
         }
 
+        // Small red arrow at each telemetry point, rotated to the boat's true
+        // heading at that time (falls back to bearing when heading is missing).
+        positions.forEach(p => {
+            const heading = p.true_heading != null ? p.true_heading : p.bearing;
+            new google.maps.Marker({
+                position: { lat: p.lat, lng: p.lng },
+                map,
+                icon: {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    fillColor: 'red', fillOpacity: 0.9, strokeWeight: 0,
+                    scale: 2.44, rotation: heading || 0
+                }
+            });
+        });
+
+        // Sampled cumulative-distance km labels along the track.
         const step = Math.round(positions.length / 10) + 1;
         for (let i = 0; i < positions.length; i += step) {
             new google.maps.Marker({
