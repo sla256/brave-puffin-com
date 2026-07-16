@@ -41,6 +41,59 @@
 
     let map;
 
+    // Microtransat Challenge start (western) and finish (eastern) lines.
+    // A valid west-to-east crossing must begin west of the start line and end
+    // east of the finish line. Coordinates from the official rules
+    // (microtransat.org). Static reference geography drawn on every mission map.
+    const MICROTRANSAT_LINES = {
+        start: [
+            { lat: 48.0, lng: -47.0 },
+            { lat: 45.5, lng: -47.0 },
+            { lat: 40.0, lng: -65.0 },
+            { lat: 30.0, lng: -77.0 },
+            { lat: 20.0, lng: -59.0 },
+            { lat: 10.0, lng: -56.0 },
+        ],
+        finish: [
+            { lat: 55.0, lng: -16.0 },
+            { lat: 51.0, lng: -16.0 },
+            { lat: 46.0, lng: -11.0 },
+            { lat: 44.5, lng: -13.5 },
+            { lat: 37.0, lng: -13.5 },
+            { lat: 35.0, lng: -20.5 },
+            { lat: 25.0, lng: -22.0 },
+        ],
+    };
+
+    // Draws both Microtransat boundary lines as dashed geodesic polylines with a
+    // label at the northern end. Called once at map init - these never change.
+    function drawMicrotransatLines(map) {
+        const styles = {
+            start: { color: '#00e5ff', label: 'Microtransat start' },
+            finish: { color: '#ffd400', label: 'Microtransat finish' },
+        };
+        for (const key of Object.keys(MICROTRANSAT_LINES)) {
+            const pts = MICROTRANSAT_LINES[key];
+            const { color, label } = styles[key];
+            new google.maps.Polyline({
+                path: pts,
+                geodesic: true,
+                strokeOpacity: 0,  // pure dashes via the repeated icon below
+                icons: [{ icon: { path: 'M 0,-1 0,1', strokeColor: color, strokeOpacity: 0.9, scale: 3 }, offset: '0', repeat: '10px' }],
+                map,
+                zIndex: 0,
+            });
+            new google.maps.Marker({
+                position: pts[0],
+                map,
+                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: color, fillOpacity: 0.9, strokeColor: '#000', strokeWeight: 1, scale: 4 },
+                label: { text: label, color, fontSize: '11px', fontWeight: 'bold' },
+                title: label,
+                zIndex: 0,
+            });
+        }
+    }
+
     async function initMap() {
         const { Map } = await google.maps.importLibrary("maps");
         await google.maps.importLibrary("geometry");
@@ -55,6 +108,8 @@
             scaleControl: true,
             gestureHandling: 'greedy'
         });
+
+        drawMicrotransatLines(map);
 
         const data = await fetch(DATA_URL).then(r => r.json());
         drawRoute(data.route, data.summary.last_waypoint_index);
