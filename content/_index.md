@@ -1,6 +1,6 @@
 Brave Puffin is a solar powered, long range, autonomous boat.
 
-{{< trackmap table="false" height="700px" >}}
+{{< trackmap table="false" height="620px" >}}
 
 Puffin is designed to compete in the annual [Microtransat Challenge](https://www.microtransat.org/) in the non sailing, unmanned class - that is, to cross the Atlantic Ocean by itself.
 
