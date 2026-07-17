@@ -3,10 +3,10 @@
   export-public-mission lambda and renders route + travelled track + telemetry.
   Params:
     table  - "false" to hide the telemetry table (map only). Default: shown.
-    height - map height CSS value. Default: 500px.
+    height - map height CSS value. Default: 700px.
 */ -}}
 {{- $showTable := ne (.Get "table") "false" -}}
-{{- $height := .Get "height" | default "500px" -}}
+{{- $height := .Get "height" | default "700px" -}}
 
 <div id="map" style="height: {{ $height }};"></div>
 
