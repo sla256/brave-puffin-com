@@ -118,14 +118,20 @@
         fitToMission(data.route, data.positions);
     }
 
-    // Frame the whole mission at once: planned route waypoints + travelled track.
-    // Falls back to centering when there's nothing to bound. Clamps deep zoom
-    // (hybrid tiles thin out over open water).
+    // Frame the completed track (travelled positions) so the map opens zoomed
+    // into where the boat has actually been, not the whole planned transatlantic
+    // route (which would shrink the track to a dot across the ocean). Falls back
+    // to the planned route waypoints when no positions exist yet, and to
+    // centering when there's nothing to bound. Clamps deep zoom (hybrid tiles
+    // thin out over open water).
     function fitToMission(route, positions) {
         const bounds = new google.maps.LatLngBounds();
         let n = 0;
-        (route?.waypoints || []).forEach(wp => { bounds.extend({ lat: wp.lat, lng: wp.lon }); n++; });
-        (positions || []).forEach(p => { bounds.extend({ lat: p.lat, lng: p.lng }); n++; });
+        if (positions && positions.length) {
+            positions.forEach(p => { bounds.extend({ lat: p.lat, lng: p.lng }); n++; });
+        } else {
+            (route?.waypoints || []).forEach(wp => { bounds.extend({ lat: wp.lat, lng: wp.lon }); n++; });
+        }
 
         if (n === 0) return;
         if (n === 1) {
