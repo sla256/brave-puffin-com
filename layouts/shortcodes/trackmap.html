@@ -35,9 +35,14 @@
 </script>
 
 <script>
-    // Single public JSON exported periodically by the backend export-public-mission
-    // lambda: { route, summary, positions:[{epoch,lat,lng,bearing,...}] }.
-    const DATA_URL = "https://tracking-data.bravepuffin.com/2026-tracking-data.json";
+    // One public JSON per boat, exported periodically by the backend
+    // export-public-mission lambda: { route, summary, positions:[{epoch,lat,lng,...}] }.
+    // Newest launch first: the map frames it and the table below reports it, since
+    // it is the mission the page is about. Boats after the first are drawn faded.
+    const MISSIONS = [
+        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-2.json", name: "Brave Puffin 2" },
+        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data.json",   name: "Brave Puffin 1" },
+    ];
 
     let map;
 
@@ -111,11 +116,25 @@
 
         drawMicrotransatLines(map);
 
-        const data = await fetch(DATA_URL).then(r => r.json());
-        drawRoute(data.route, data.summary.last_waypoint_index);
-        drawTrack(data.positions);
-        fillSummary(data.summary);
-        fitToMission(data.route, data.positions);
+        // One boat's export being missing or unreachable must not blank the map for
+        // the others, so a failed fetch becomes null here and that boat is skipped.
+        const loaded = await Promise.all(MISSIONS.map(m =>
+            fetch(m.url).then(r => (r.ok ? r.json() : null)).catch(() => null)));
+
+        // Draw older boats first so the newest one's track sits on top of theirs.
+        for (let i = loaded.length - 1; i >= 0; i--) {
+            const data = loaded[i];
+            if (!data) continue;
+            drawRoute(data.route, data.summary.last_waypoint_index, i === 0);
+            drawTrack(data.positions, MISSIONS[i].name, i === 0);
+        }
+
+        // Frame and report the newest boat that actually loaded.
+        const lead = loaded.find(d => d);
+        if (lead) {
+            fillSummary(lead.summary);
+            fitToMission(lead.route, lead.positions);
+        }
     }
 
     // Frame the completed track (travelled positions) so the map opens zoomed
@@ -146,13 +165,17 @@
     }
 
     // Planned route: gray line + green waypoint markers, current waypoint highlighted.
-    function drawRoute(route, currentWpIndex) {
+    // An older boat's route is drawn faded, and its waypoints lose their numbers, so
+    // the two stay readable once both boats are running the same Atlantic route and
+    // the lines land on top of each other.
+    function drawRoute(route, currentWpIndex, isPrimary) {
         if (!route || !route.waypoints || !route.waypoints.length) return;
         const path = route.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lon }));
 
         new google.maps.Polyline({
             path, geodesic: true, strokeColor: '#cccccc',
-            strokeOpacity: 0.9, strokeWeight: 2, map
+            strokeOpacity: isPrimary ? 0.9 : 0.4,
+            strokeWeight: isPrimary ? 2 : 1.5, map
         });
 
         route.waypoints.forEach((wp, i) => {
@@ -160,13 +183,15 @@
             new google.maps.Marker({
                 position: { lat: wp.lat, lng: wp.lon },
                 map,
-                label: { text: String(i), color: '#fff', fontSize: '9px', fontWeight: isCurrent ? 'bold' : 'normal' },
+                label: isPrimary
+                    ? { text: String(i), color: '#fff', fontSize: '9px', fontWeight: isCurrent ? 'bold' : 'normal' }
+                    : null,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
                     fillColor: isCurrent ? '#f0883e' : '#3fb950',
-                    fillOpacity: isCurrent ? 1 : 0.8,
-                    strokeColor: '#fff', strokeWeight: isCurrent ? 2 : 1,
-                    scale: isCurrent ? 8 : 6
+                    fillOpacity: isPrimary ? (isCurrent ? 1 : 0.8) : 0.35,
+                    strokeColor: '#fff', strokeWeight: isPrimary ? (isCurrent ? 2 : 1) : 0,
+                    scale: isPrimary ? (isCurrent ? 8 : 6) : 3
                 },
                 title: 'WP ' + i + (wp.label ? ' - ' + wp.label : '')
             });
@@ -174,14 +199,16 @@
     }
 
     // Travelled track: red line, sampled cumulative-distance markers, boat at the
-    // latest fix as a bearing-rotated arrow. Zooms to fit the travelled track.
-    function drawTrack(positions) {
+    // latest fix as a bearing-rotated arrow. An older boat gets the same red, thinner
+    // and semi-transparent, so the newest boat reads as the one in focus.
+    function drawTrack(positions, boatName, isPrimary) {
         if (!positions || !positions.length) return;
         const path = positions.map(p => ({ lat: p.lat, lng: p.lng }));
+        const fade = isPrimary ? 1 : 0.55;
 
         new google.maps.Polyline({
             path, geodesic: true, strokeColor: '#FF0000',
-            strokeOpacity: 0.9, strokeWeight: 3, map
+            strokeOpacity: 0.9 * fade, strokeWeight: isPrimary ? 3 : 2, map
         });
 
         // Cumulative distance per point, for the sampled km labels.
@@ -203,8 +230,8 @@
                 map,
                 icon: {
                     path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    fillColor: 'red', fillOpacity: 0.9, strokeWeight: 0,
-                    scale: 2.44, rotation: heading || 0
+                    fillColor: 'red', fillOpacity: 0.9 * fade, strokeWeight: 0,
+                    scale: isPrimary ? 2.44 : 2, rotation: heading || 0
                 }
             });
         });
@@ -216,17 +243,18 @@
                 position: { lat: positions[i].lat, lng: positions[i].lng },
                 map,
                 label: { text: positions[i].cumKm.toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' },
-                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: 'red', fillOpacity: 1, strokeColor: 'red', strokeWeight: 2, scale: 6 }
+                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: 'red', fillOpacity: fade, strokeColor: 'red', strokeWeight: 2, scale: 6 }
             });
         }
 
+        // Hovering the boat arrow names it - the only place the two are labelled.
         const last = positions[positions.length - 1];
         new google.maps.Marker({
             position: { lat: last.lat, lng: last.lng },
-            map, title: 'Brave Puffin',
+            map, title: boatName,
             icon: {
                 path: 'M 0,-14 L 8,8 L 0,3 L -8,8 Z',
-                fillColor: '#1e90ff', fillOpacity: 1,
+                fillColor: '#1e90ff', fillOpacity: fade,
                 strokeColor: '#ffffff', strokeWeight: 1.5,
                 scale: 1.2, rotation: last.bearing || 0,
                 anchor: new google.maps.Point(0, 0)
