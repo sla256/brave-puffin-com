@@ -101,7 +101,6 @@
 
     async function initMap() {
         const { Map } = await google.maps.importLibrary("maps");
-        await google.maps.importLibrary("geometry");
 
         map = new Map(document.getElementById('map'), {
             zoom: 10,
@@ -211,16 +210,6 @@
             strokeOpacity: 0.9 * fade, strokeWeight: isPrimary ? 3 : 2, map
         });
 
-        // Cumulative distance per point, for the sampled km labels.
-        let totalM = 0;
-        positions[0].cumKm = 0;
-        for (let i = 1; i < positions.length; i++) {
-            totalM += google.maps.geometry.spherical.computeDistanceBetween(
-                new google.maps.LatLng(positions[i - 1].lat, positions[i - 1].lng),
-                new google.maps.LatLng(positions[i].lat, positions[i].lng));
-            positions[i].cumKm = Math.round(totalM / 1000);
-        }
-
         // Small red arrow at each telemetry point, rotated to the boat's true
         // heading at that time (falls back to bearing when heading is missing).
         positions.forEach(p => {
@@ -236,13 +225,15 @@
             });
         });
 
-        // Sampled cumulative-distance km labels along the track.
+        // Sampled cumulative-distance km labels along the track. cum_km comes from the
+        // export, which measures it on the full track before thinning it for this map,
+        // so the labels still add up to the total distance in the table.
         const step = Math.round(positions.length / 10) + 1;
         for (let i = 0; i < positions.length; i += step) {
             new google.maps.Marker({
                 position: { lat: positions[i].lat, lng: positions[i].lng },
                 map,
-                label: { text: positions[i].cumKm.toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' },
+                label: { text: Math.round(positions[i].cum_km || 0).toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' },
                 icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: 'red', fillOpacity: fade, strokeColor: 'red', strokeWeight: 2, scale: 6 }
             });
         }
