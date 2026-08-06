@@ -39,9 +39,10 @@
     // export-public-mission lambda: { route, summary, positions:[{epoch,lat,lng,...}] }.
     // Newest launch first: the map frames it and the table below reports it, since
     // it is the mission the page is about. Boats after the first are drawn faded.
+    // Boat 1 (2026-tracking-data.json) is not shown any more. The backend still
+    // exports it, so putting its line back here brings its track back.
     const MISSIONS = [
         { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-2.json", name: "Brave Puffin 2" },
-        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data.json",   name: "Brave Puffin 1" },
     ];
 
     let map;
