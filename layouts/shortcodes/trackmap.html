@@ -198,7 +198,7 @@
         });
     }
 
-    // Travelled track: red line, sampled cumulative-distance markers, boat at the
+    // Travelled track: red line, cumulative-distance markers, boat at the
     // latest fix as a bearing-rotated arrow. An older boat gets the same red, thinner
     // and semi-transparent, so the newest boat reads as the one in focus.
     function drawTrack(positions, boatName, isPrimary) {
@@ -209,21 +209,6 @@
         new google.maps.Polyline({
             path, geodesic: true, strokeColor: '#FF0000',
             strokeOpacity: 0.9 * fade, strokeWeight: isPrimary ? 3 : 2, map
-        });
-
-        // Small red arrow at each telemetry point, rotated to the boat's true
-        // heading at that time (falls back to bearing when heading is missing).
-        positions.forEach(p => {
-            const heading = p.true_heading != null ? p.true_heading : p.bearing;
-            new google.maps.Marker({
-                position: { lat: p.lat, lng: p.lng },
-                map,
-                icon: {
-                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    fillColor: 'red', fillOpacity: 0.9 * fade, strokeWeight: 0,
-                    scale: isPrimary ? 2.44 : 2, rotation: heading || 0
-                }
-            });
         });
 
         // Sampled cumulative-distance km labels along the track. cum_km comes from the
