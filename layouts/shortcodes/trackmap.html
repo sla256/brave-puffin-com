@@ -8,6 +8,37 @@
 {{- $showTable := ne (.Get "table") "false" -}}
 {{- $height := .Get "height" | default "550px" -}}
 
+<style>
+  /* Callout box floating above a track point, tied to it by a thin leader line.
+     Everything inside is positioned in pixels off the point, so the callout keeps
+     its shape and size at every zoom level. */
+  .track-callout {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+  .track-callout-line {
+    position: absolute;
+    overflow: visible;
+    left: 0;
+    top: 0;
+  }
+  .track-callout-box {
+    position: absolute;
+    left: 0;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: bold;
+  }
+</style>
+
 <div id="map" style="height: {{ $height }};"></div>
 
 {{ if $showTable }}
@@ -42,7 +73,7 @@
     // Boat 1 (2026-tracking-data.json) is not shown any more. The backend still
     // exports it, so putting its line back here brings its track back.
     const MISSIONS = [
-        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-2.json", name: "Brave Puffin 2" },
+        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-2.json" },  // Brave Puffin 2
     ];
 
     let map;
@@ -126,7 +157,7 @@
             const data = loaded[i];
             if (!data) continue;
             drawRoute(data.route, data.summary.last_waypoint_index, i === 0);
-            drawTrack(data.positions, MISSIONS[i].name, i === 0);
+            drawTrack(data.positions, i === 0);
         }
 
         // Frame and report the newest boat that actually loaded.
@@ -198,45 +229,109 @@
         });
     }
 
-    // Travelled track: red line, cumulative-distance markers, boat at the
-    // latest fix as a bearing-rotated arrow. An older boat gets the same red, thinner
-    // and semi-transparent, so the newest boat reads as the one in focus.
-    function drawTrack(positions, boatName, isPrimary) {
+    // Date and time in the visitor's own locale and timezone, short and without
+    // minutes - "8/12 9pm". The AM/PM cleanup does nothing in 24-hour locales.
+    function shortDateTime(epoch) {
+        const s = new Date(epoch * 1000).toLocaleString(undefined,
+            { month: 'numeric', day: 'numeric', hour: 'numeric' });
+        return s.replace(',', '').replace(/\s*(AM|PM)/i, m => m.trim().toLowerCase());
+    }
+
+    // The latest position, then one every CALLOUT_INTERVAL_HOURS working backwards
+    // from it. The launch point always gets one, whether or not it falls on that
+    // cadence - it is the date people look for.
+    const CALLOUT_INTERVAL_HOURS = 48;
+
+    function calloutPositions(positions) {
+        const chosen = [];
+        let cutoff = positions[positions.length - 1].epoch;
+        for (let i = positions.length - 1; i >= 0; i--) {
+            if (positions[i].epoch <= cutoff) {
+                chosen.push(positions[i]);
+                cutoff = positions[i].epoch - CALLOUT_INTERVAL_HOURS * 3600;
+            }
+        }
+        if (chosen[chosen.length - 1] !== positions[0]) chosen.push(positions[0]);
+        return chosen;
+    }
+
+    // A label box sitting above a track point with a thin line down to it. Built as
+    // an overlay rather than an InfoWindow so it stays small, unclickable and free of
+    // Google's popup chrome. The container div sits on the point and everything in it
+    // is offset in pixels, which keeps the callout the same size at any zoom.
+    const CALLOUT_RISE_PX = 26;
+
+    function makeCalloutOverlay() {
+        return class CalloutOverlay extends google.maps.OverlayView {
+            constructor(position, text) {
+                super();
+                this.position = position;
+                this.text = text;
+            }
+
+            onAdd() {
+                this.div = document.createElement('div');
+                this.div.className = 'track-callout';
+                this.div.innerHTML =
+                    '<svg class="track-callout-line" width="1" height="1">' +
+                    '<line x1="0" y1="0" x2="0" y2="-' + CALLOUT_RISE_PX + '" ' +
+                    'stroke="#ffffff" stroke-width="1" stroke-opacity="0.8"/></svg>' +
+                    '<div class="track-callout-box" style="top:-' + CALLOUT_RISE_PX + 'px"></div>';
+                this.div.querySelector('.track-callout-box').textContent = this.text;
+                this.getPanes().floatPane.appendChild(this.div);
+            }
+
+            draw() {
+                const p = this.getProjection().fromLatLngToDivPixel(this.position);
+                this.div.style.left = p.x + 'px';
+                this.div.style.top = p.y + 'px';
+            }
+
+            onRemove() {
+                this.div.remove();
+            }
+        };
+    }
+
+    // Travelled track, one line in a single colour. An older boat gets thinner and
+    // semi-transparent lines, so the newest boat reads as the one in focus.
+    const TRACK_COLOR = '#ff3b30';
+
+    function drawTrack(positions, isPrimary) {
         if (!positions || !positions.length) return;
-        const path = positions.map(p => ({ lat: p.lat, lng: p.lng }));
         const fade = isPrimary ? 1 : 0.55;
+        const path = positions.map(p => ({ lat: p.lat, lng: p.lng }));
+
+        // Dark casing under the track, so it stays readable over light or busy
+        // satellite imagery.
+        new google.maps.Polyline({
+            path, geodesic: true, strokeColor: '#000000',
+            strokeOpacity: 0.45 * fade, strokeWeight: isPrimary ? 7 : 4, map, zIndex: 0
+        });
 
         new google.maps.Polyline({
-            path, geodesic: true, strokeColor: '#FF0000',
-            strokeOpacity: 0.9 * fade, strokeWeight: isPrimary ? 3 : 2, map
+            path, geodesic: true, strokeColor: TRACK_COLOR,
+            strokeOpacity: fade, strokeWeight: isPrimary ? 4 : 2, map, zIndex: 1
         });
 
-        // Sampled cumulative-distance km labels along the track. cum_km comes from the
-        // export, which measures it on the full track before thinning it for this map,
-        // so the labels still add up to the total distance in the table.
-        const step = Math.round(positions.length / 10) + 1;
-        for (let i = 0; i < positions.length; i += step) {
+        if (!isPrimary) return;
+
+        // Time callouts, on the focused boat only - two boats' worth would cover
+        // the map.
+        const CalloutOverlay = makeCalloutOverlay();
+        for (const p of calloutPositions(positions)) {
+            const at = new google.maps.LatLng(p.lat, p.lng);
             new google.maps.Marker({
-                position: { lat: positions[i].lat, lng: positions[i].lng },
-                map,
-                label: { text: Math.round(positions[i].cum_km || 0).toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' },
-                icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: 'red', fillOpacity: fade, strokeColor: 'red', strokeWeight: 2, scale: 6 }
+                position: at, map,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#ffffff', fillOpacity: 1,
+                    strokeColor: '#000000', strokeWeight: 1, scale: 3.5
+                },
+                zIndex: 2
             });
+            new CalloutOverlay(at, shortDateTime(p.epoch)).setMap(map);
         }
-
-        // Hovering the boat arrow names it - the only place the two are labelled.
-        const last = positions[positions.length - 1];
-        new google.maps.Marker({
-            position: { lat: last.lat, lng: last.lng },
-            map, title: boatName,
-            icon: {
-                path: 'M 0,-14 L 8,8 L 0,3 L -8,8 Z',
-                fillColor: '#1e90ff', fillOpacity: fade,
-                strokeColor: '#ffffff', strokeWeight: 1.5,
-                scale: 1.2, rotation: last.bearing || 0,
-                anchor: new google.maps.Point(0, 0)
-            }
-        });
     }
 
     function fillSummary(s) {
