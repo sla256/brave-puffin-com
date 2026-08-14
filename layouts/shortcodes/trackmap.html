@@ -237,21 +237,25 @@
         return s.replace(',', '').replace(/\s*(AM|PM)/i, m => m.trim().toLowerCase());
     }
 
-    // The latest position, then one every CALLOUT_INTERVAL_HOURS working backwards
-    // from it. The launch point always gets one, whether or not it falls on that
-    // cadence - it is the date people look for.
+    // The launch point, then one every CALLOUT_INTERVAL_HOURS working forwards from
+    // it, then the latest position. Launch and latest always get one, whether or not
+    // they fall on that cadence - those are the two dates people look for.
     const CALLOUT_INTERVAL_HOURS = 48;
 
     function calloutPositions(positions) {
-        const chosen = [];
-        let cutoff = positions[positions.length - 1].epoch;
-        for (let i = positions.length - 1; i >= 0; i--) {
-            if (positions[i].epoch <= cutoff) {
-                chosen.push(positions[i]);
-                cutoff = positions[i].epoch - CALLOUT_INTERVAL_HOURS * 3600;
+        const first = positions[0];
+        const last = positions[positions.length - 1];
+        const chosen = [first];
+
+        let nextAt = first.epoch + CALLOUT_INTERVAL_HOURS * 3600;
+        for (const p of positions) {
+            if (p.epoch >= nextAt) {
+                chosen.push(p);
+                nextAt = p.epoch + CALLOUT_INTERVAL_HOURS * 3600;
             }
         }
-        if (chosen[chosen.length - 1] !== positions[0]) chosen.push(positions[0]);
+
+        if (chosen[chosen.length - 1] !== last) chosen.push(last);
         return chosen;
     }
 
