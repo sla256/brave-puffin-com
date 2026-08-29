@@ -49,6 +49,7 @@
 <tr><th>Speed - last fix, km/h</th><td><div id="speed-last"></div></td></tr>
 <tr><th>Battery, V</th><td><div id="battery-voltage"></div></td></tr>
 <tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
+<tr><th>Water temperature, C</th><td><div id="water-temp"></div></td></tr>
 <tr><th>Onboard humidity, %</th><td><div id="onboard-humidity"></div></td></tr>
 <tr><th>Distance to next waypoint, km</th><td><div id="distance-to-next"></div></td></tr>
 </table>
@@ -70,10 +71,11 @@
     // export-public-mission lambda: { route, summary, positions:[{epoch,lat,lng,...}] }.
     // Newest launch first: the map frames it and the table below reports it, since
     // it is the mission the page is about. Boats after the first are drawn faded.
-    // Boat 1 (2026-tracking-data.json) is not shown any more. The backend still
-    // exports it, so putting its line back here brings its track back.
+    // Older missions (2026-tracking-data.json - boat 1; 2026-tracking-data-2.json -
+    // boat 2's Gulf of Maine test) are not shown any more. The backend still exports
+    // them, so putting a line back here brings that track back.
     const MISSIONS = [
-        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-2.json" },  // Brave Puffin 2
+        { url: "https://tracking-data.bravepuffin.com/2026-tracking-data-3.json" },  // Brave Puffin 2, Atlantic crossing
     ];
 
     let map;
@@ -348,6 +350,7 @@
         set('speed-last', s.last_speed_mh == null ? '-' : (s.last_speed_mh / 1000).toFixed(1));
         set('battery-voltage', s.last_battery_mv == null ? '-' : (s.last_battery_mv / 1000).toFixed(2));
         set('onboard-temp', s.last_temp_c == null ? '-' : s.last_temp_c);
+        set('water-temp', s.last_water_temp_c == null ? '-' : s.last_water_temp_c);
         set('onboard-humidity', s.last_humidity_pct == null ? '-' : s.last_humidity_pct);
         set('distance-to-next', s.last_dist_to_wp_m == null ? '-' : (s.last_dist_to_wp_m / 1000).toFixed(2));
     }
