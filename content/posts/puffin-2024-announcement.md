@@ -45,4 +45,4 @@ A million things can go wrong on a multi-month long, autonomous mission. Some wi
 
 ...and more.
 
-Please comment! Or [follow](/contact) to stay connected.
+[Follow](/contact) to stay connected.

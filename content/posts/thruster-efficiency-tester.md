@@ -116,7 +116,3 @@ Several caveats for the 10" propeller results:
 
 I have other versions of 9" and 10" props from APC, and can test them later. But I am not planning to go bigger than 10" for practical reasons. It would be also interesting to test a ducted version, a "true" boat optimized, 3 blade propeller, 24V motors and so on.
 
-## Questions or comments?
-
-Please!
-

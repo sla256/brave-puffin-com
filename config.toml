@@ -13,11 +13,6 @@ googleAnalytics = 'G-42NQX112R9'
   description = "Solar powered, long range autonomous boat"
   author = '...'
 
-  [params.comments]
-    enabled = true
-    githubRepo = 'sla256/brave-puffin-com'
-    theme = 'github-light'
-
 
 [menu]
   [[menu.main]]
