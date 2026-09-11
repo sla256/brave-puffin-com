@@ -46,7 +46,8 @@
 <tr><th>Last update</th><td><div id="last-transmission-time"></div></td></tr>
 <tr><th>Total distance, km</th><td><div id="total-distance"></div></td></tr>
 <tr><th>Average speed - mission, km/h</th><td><div id="average-speed-mission"></div></td></tr>
-<tr><th>Speed - last fix, km/h</th><td><div id="speed-last"></div></td></tr>
+<tr><th>Average speed - last 24h, km/h</th><td><div id="average-speed-24h"></div></td></tr>
+<tr><th>Speed - last leg, km/h</th><td><div id="speed-last"></div></td></tr>
 <tr><th>Battery, V</th><td><div id="battery-voltage"></div></td></tr>
 <tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
 <tr><th>Water temperature, C</th><td><div id="water-temp"></div></td></tr>
@@ -347,7 +348,8 @@
         set('last-transmission-time', s.last_update_epoch ? new Date(s.last_update_epoch * 1000).toLocaleString() : '-');
         set('total-distance', s.distance_km == null ? '-' : Math.round(s.distance_km));
         set('average-speed-mission', fix1(s.avg_speed_kmh));
-        set('speed-last', s.last_speed_mh == null ? '-' : (s.last_speed_mh / 1000).toFixed(1));
+        set('average-speed-24h', fix1(s.avg_speed_24h_kmh));
+        set('speed-last', fix1(s.last_segment_speed_kmh));
         set('battery-voltage', s.last_battery_mv == null ? '-' : (s.last_battery_mv / 1000).toFixed(2));
         set('onboard-temp', s.last_temp_c == null ? '-' : s.last_temp_c);
         set('water-temp', s.last_water_temp_c == null ? '-' : s.last_water_temp_c);

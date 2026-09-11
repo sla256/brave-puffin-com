@@ -9,14 +9,16 @@ comments: false
 
 ## 2026
 
-In progress! All of the lessons and best features from prior Puffins applied, plus:
+* Single propulsion motor, servo driven rudder
+* Durable HDPE, floation foam filled hull
+* 100W solar panel, ~400Wh Li-Ion battery pack / keel
+* ESP32 MCU on a purpose-build PCB, wind sensor, safety light and flag
+* Iridium SBD for offshore comms, LTE modem for near shore
+* Over the air, remote firmware upgrade (LTE)
+* SPOT Trace as a backup location beacon
+* Custom ESP-NOW based short range remote with e-ink display
 
-* Single propulsion motor, worm gear driven rudder
-* Durable HDPE hull, floation foam filled
-* ESP32 MCU on purpose-build PCB, Iridium SBD comms, OTA (hopefully)
-* Custom ESP-NOW based remote with e-ink display
-
-![Brave Puffin 2026 work in progress](/img/2026-puffin-wip.jpg)
+![Brave Puffin 2026](/img/2026-brave-puffin-2.jpg)
 
 
 ## 2025
@@ -30,7 +32,7 @@ In progress! All of the lessons and best features from prior Puffins applied, pl
 * Bluetooth and standard RC remote for short distance control
 * Fully autonomous; in-mission adjustable route; new cross-track error correction
 
-![Brave Puffin 2025 in water](/img/2025-puffin-in-water.jpg)
+![Brave Puffin 2025](/img/2025-puffin-in-water.jpg)
 
 
 ## 2024
