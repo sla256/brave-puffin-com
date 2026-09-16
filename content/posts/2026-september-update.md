@@ -7,17 +7,23 @@ date: 2026-09-15
 
 Highlights:
 
-* The [new 2026 rudder-based Puffin](/builds#2026)  performed well in multiple overnight autonomous tests, was launched into the Gulf of Maine, malfunctioned, drifted for ~2 months while being passively tracked, and... keep reading.
+* The [new 2026 single motor, rudder-based Puffin](/builds#2026)  performed well in multiple overnight autonomous tests, was launched into the Gulf of Maine, malfunctioned, drifted for ~2 months while being passively tracked, and... keep reading.
 
-* Last year's [2025 thrust steering Puffin](/builds#2025) was promptly refurbished and also launched into the Gulf of Maine. And:
+* Last year's [2025 two motor, thrust steering Puffin](/builds#2025) was promptly refurbished and also launched into the Gulf of Maine. And:
 
 * Did you know that tidal currents in the Gulf of Maine are off the charts crazy, some of the strongest on the planet? I didn't. 
 
-* So 2025 Puffin was brought back after 3 weeks in the gulf, inspected, upgraded, and launched onto a proper Microtransat mission, on a different route; [it is in progress](/track/2026)!
+* So 2025 Puffin was brought back after 3 weeks in the gulf, inspected, upgraded, and launched onto a proper west-to-east Microtransat mission, on a different route; [it is in progress](/track/2026)!
 
 ### 2026 Puffin
 
 I enjoyed building and [testing this boat](https://www.youtube.com/watch?v=vQCE6nEdyH8). It has a robust and efficient hull with a rudder layout, a wind sensor and a mast for future upgrades; yet it is light and compact.
+
+{{< rawhtml >}}
+<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1.5em 0;">
+  <iframe src="https://www.youtube-nocookie.com/embed/vQCE6nEdyH8" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+{{< /rawhtml >}}
 
 It has many electronics upgrades on a custom-designed PCB, including an LTE (cell) modem for frequent communication during near-shore test missions and over-the-air firmware upgrades:
 
@@ -35,14 +41,14 @@ So, I could still track the boat. It would phone home via Iridium occasionally, 
 
 ![Brave Puffin 2026 drift in GOM](/img/2026-brave-puffin-track-1.jpg#large)
 
-Until a few days ago, when I got a message from someone on a Canadian fishing boat. They found it and brought it on board!
+Until a few days ago, when I got a message from someone on a **Canadian fishing boat. They found it and brought it on board!**
 
 They are still offshore. We agreed to talk in a couple of weeks to facilitate the pickup. Can't wait to read the logs and inspect the boat - yes, it was a failed mission, but I am sure I'll learn a lot from it.
 
 
 ### 2025 Puffin on a 2026 mission
 
-Undeterred, I took the old 2025 boat, refurbished and upgraded it, tested it near shore and launched it within a week. That became a 3-week roundtrip shakedown mission. You can see that initially it was mostly following the route and going straight. Then, about 65 km off the coast of Nova Scotia, things got strange. The boat would not make any progress, despite seemingly favorable conditions:
+Undeterred, I took the old 2025 boat, refurbished and upgraded it, tested it near shore and launched it within a week. That became a 3-week, 1180 km (640 nautical miles) roundtrip shakedown mission. You can see that initially it was mostly following the route and going straight. Then, about 65 km off the coast of Nova Scotia, things got strange. The boat would not make any progress, despite seemingly favorable conditions:
 
 ![Brave Puffin 2025 launch 1](/img/2025-brave-puffin-test-1.jpg#large)
 
@@ -56,7 +62,7 @@ Meanwhile, the maximum speed that the 2025 model can do, fully charged and at ma
 
 Launching in early September is quite late in the year for an underpowered solar boat to go across the ocean on the shortest possible, **northern** route. (My original route was aiming for [Puffin Island](https://en.wikipedia.org/wiki/Puffin_Island_(County_Kerry)).)
 
-Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is now going to the **Canary Islands:**
+Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is now going **from Boston to the Canary Islands:**
 
 ![2026 attempt southern route September 15](/img/2026-brave-puffin-southern-route-1.jpg#large)
 
@@ -72,4 +78,12 @@ What you see on this ^ map:
 
 ### Stay tuned
 
-This is getting quite long already. Hopefully Puffin will keep on going, so I'll have more opportunities to share its progress and the lessons learned.
+This is getting quite long already. Hopefully Puffin will keep on going, so I'll have more opportunities to share its progress and the lessons learned, such as:
+
+* Solving the prop fouling problem
+* Dealing with ocean currents and the weather
+* Sensor data (e.g. water temp) vs. oceanic models
+* Choosing and using ultrasonic wind sensors
+* Selecting LTE and Iridium antennas
+* Related stories and anecdotes
+* ...or what else would you like me to cover?
