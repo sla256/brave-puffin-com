@@ -5,7 +5,7 @@ date: 2026-09-15
 
 ### Busy summer: two Brave Puffin boats, multiple launches, one attempt in progress
 
-So much to share but I know I have to keep this brief. Highlights:
+Highlights:
 
 * The [new 2026 rudder-based Puffin](/builds#2026)  performed well in multiple overnight autonomous tests, was launched into the Gulf of Maine, malfunctioned, drifted for ~2 months while being passively tracked, and... keep reading.
 
@@ -13,11 +13,7 @@ So much to share but I know I have to keep this brief. Highlights:
 
 * Did you know that tidal currents in the Gulf of Maine are off the charts crazy, some of the strongest on the planet? I didn't. 
 
-* 2025 Puffin was brought back after 3 weeks in the gulf, inspected, upgraded, and launched onto a proper Microtransat mission, on a different route; [it is in progress](/track/2026)!
-
-* Turns out keeping the satellite communication (Iridium) antenna under the solar panel is NOT a good idea.
-
-* A gimbal-mounted backup SPOT tracker IS a good idea.
+* So 2025 Puffin was brought back after 3 weeks in the gulf, inspected, upgraded, and launched onto a proper Microtransat mission, on a different route; [it is in progress](/track/2026)!
 
 ### 2026 Puffin
 
@@ -60,7 +56,7 @@ Meanwhile, the maximum speed that the 2025 model can do, fully charged and at ma
 
 Launching in early September is quite late in the year for an underpowered solar boat to go across the ocean on the shortest possible, **northern** route. (My original route was aiming for [Puffin Island](https://en.wikipedia.org/wiki/Puffin_Island_(County_Kerry)).)
 
-Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is going to the **Canary Islands:**
+Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is now going to the **Canary Islands:**
 
 ![2026 attempt southern route September 15](/img/2026-brave-puffin-southern-route-1.jpg#large)
 
@@ -74,6 +70,6 @@ What you see on this ^ map:
 * This is not the shortest route: my intent was to "punch through" tidal currents, tap into the Gulf Stream, and avoid the Sargasso Sea
 * The swirly colored lines show major currents; they are animated on my map; can cover next time
 
-### Enough for now
+### Stay tuned
 
 This is getting quite long already. Hopefully Puffin will keep on going, so I'll have more opportunities to share its progress and the lessons learned.
