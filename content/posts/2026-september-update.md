@@ -33,7 +33,7 @@ Launched it on July 18th:
 
 And promptly lost control the next day. I think it capsized (long story).
 
-Thankfully, I installed a battery-powered backup satellite tracker, gimbal-mounted (i.e. always pointing up), even if the boat is inverted. You can see its dedicated enclosure in the picture above, peeking from under the solar panel.
+Thankfully, I installed a battery-powered backup satellite tracker, gimbal-mounted, i.e. always pointing up, even if the boat is inverted. You can see its dedicated enclosure in the picture above, peeking from under the solar panel.
 
 So, I could still track the boat. It would phone home via Iridium occasionally, but otherwise it was totally drifting, making some strange art over the next 2 months:
 
@@ -70,7 +70,7 @@ What you see on this ^ map:
 * The short red line on the left is Puffin's track so far, between August 29th and September 15th, as of this writing
 * It is roughly south of Cape Cod and at the latitude of Washington DC, after completing ~800 km so far
 * It entered the Gulf Stream and is about to cross Microtransat's starting (blue) line
-* It has a long way to the (yellow) finish line: 5000 km remaining; it will take 3-4 months if all goes well
+* It has a long way to go to the (yellow) finish line: 5000 km remaining; it will take 3-4 months if all goes well
 * This is not the shortest route: my intent was to "punch through" tidal currents, tap into the Gulf Stream, and avoid the Sargasso Sea
 * The swirly colored lines show major currents; they are animated on my map; can cover next time
 
