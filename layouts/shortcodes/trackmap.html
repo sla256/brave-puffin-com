@@ -47,8 +47,9 @@
 <tr><th>Total distance, km</th><td><div id="total-distance"></div></td></tr>
 <tr><th>Average speed - mission, km/h</th><td><div id="average-speed-mission"></div></td></tr>
 <tr><th>Average speed - last 24h, km/h</th><td><div id="average-speed-24h"></div></td></tr>
-<tr><th>Speed - last leg, km/h</th><td><div id="speed-last"></div></td></tr>
-<tr><th>Battery, V</th><td><div id="battery-voltage"></div></td></tr>
+<tr><th>Speed - last leg (calculated), km/h</th><td><div id="speed-last"></div></td></tr>
+<tr><th>Battery</th><td><div id="battery"></div></td></tr>
+<tr><th>Wind speed - last 24h, km/h</th><td><div id="model-wind-24h"></div></td></tr>
 <tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
 <tr><th>Water temperature, C</th><td><div id="water-temp"></div></td></tr>
 <tr><th>Onboard humidity, %</th><td><div id="onboard-humidity"></div></td></tr>
@@ -243,7 +244,7 @@
     // The launch point, then one every CALLOUT_INTERVAL_HOURS working forwards from
     // it, then the latest position. Launch and latest always get one, whether or not
     // they fall on that cadence - those are the two dates people look for.
-    const CALLOUT_INTERVAL_HOURS = 48;
+    const CALLOUT_INTERVAL_HOURS = 48 / 0.7;
 
     function calloutPositions(positions) {
         const first = positions[0];
@@ -350,11 +351,14 @@
         set('average-speed-mission', fix1(s.avg_speed_kmh));
         set('average-speed-24h', fix1(s.avg_speed_24h_kmh));
         set('speed-last', fix1(s.last_segment_speed_kmh));
-        set('battery-voltage', s.last_battery_mv == null ? '-' : (s.last_battery_mv / 1000).toFixed(2));
+        const charge = s.last_battery_charge_pct == null ? '-' : s.last_battery_charge_pct + '%';
+        const voltage = s.last_battery_mv == null ? null : (s.last_battery_mv / 1000).toFixed(1) + 'V';
+        set('battery', voltage == null ? charge : charge + ' (' + voltage + ')');
+        set('model-wind-24h', fix1(s.avg_model_wind_24h_kmh));
         set('onboard-temp', s.last_temp_c == null ? '-' : s.last_temp_c);
         set('water-temp', s.last_water_temp_c == null ? '-' : s.last_water_temp_c);
         set('onboard-humidity', s.last_humidity_pct == null ? '-' : s.last_humidity_pct);
-        set('distance-to-next', s.last_dist_to_wp_m == null ? '-' : (s.last_dist_to_wp_m / 1000).toFixed(2));
+        set('distance-to-next', s.distance_to_next_wp_m == null ? '-' : (s.distance_to_next_wp_m / 1000).toFixed(2));
     }
 
     initMap();
