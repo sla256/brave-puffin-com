@@ -17,7 +17,7 @@ Highlights:
 
 ### 2026 Puffin
 
-I enjoyed building and [testing this boat](https://www.youtube.com/watch?v=vQCE6nEdyH8). It has a robust and efficient hull with a rudder layout, a wind sensor and a mast for future upgrades; yet it is light and compact.
+I enjoyed building and testing this boat. It has a robust and efficient hull with an oversized rudder, a wind sensor and a mast for future upgrades; yet it is light and compact.
 
 {{< rawhtml >}}
 <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1.5em 0;">
@@ -60,9 +60,9 @@ Meanwhile, the maximum speed that the 2025 model can do, fully charged and at ma
 
 ### Transatlantic attempt
 
-Launching in early September is quite late in the year for an underpowered solar boat to go across the ocean on the shortest possible, **northern** route. (My original route was aiming for [Puffin Island](https://en.wikipedia.org/wiki/Puffin_Island_(County_Kerry)).)
+Launching a solar boat across the ocean in early September means there's not going to be as much sunlight available. Especially on the shortest possible, **northern** route. My simulation showed it's just not going to be enough, and the boat will start drifting every day. (Sad, because my original route was aiming for [Puffin Island](https://en.wikipedia.org/wiki/Puffin_Island_(County_Kerry)).)
 
-Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is now going **from Boston to the Canary Islands:**
+Thus, to get more sun and to benefit from the Gulf Stream, Brave Puffin is now going **south, from Boston to the Canary Islands:**
 
 ![2026 attempt southern route September 15](/img/2026-brave-puffin-southern-route-1.jpg#large)
 
@@ -85,5 +85,4 @@ This is getting quite long already. Hopefully Puffin will keep on going, so I'll
 * Sensor data (e.g. water temp) vs. oceanic models
 * Choosing and using ultrasonic wind sensors
 * Selecting LTE and Iridium antennas
-* Related stories and anecdotes
 * ...or what else would you like me to cover?
