@@ -334,9 +334,10 @@
         // Time callouts, on the focused boat only - two boats' worth would cover
         // the map.
         const CalloutOverlay = makeCalloutOverlay();
+        const callouts = [];
         for (const p of calloutPositions(positions)) {
             const at = new google.maps.LatLng(p.lat, p.lng);
-            new google.maps.Marker({
+            const marker = new google.maps.Marker({
                 position: at, map,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
@@ -345,8 +346,42 @@
                 },
                 zIndex: 2
             });
-            new CalloutOverlay(at, shortDateTime(p.epoch)).setMap(map);
+            const overlay = new CalloutOverlay(at, shortDateTime(p.epoch));
+            overlay.setMap(map);
+            callouts.push({ marker, overlay });
         }
+
+        // Keep the original density at the initial fitted zoom and closer. Only
+        // thin that same set when zooming out; never add extra timestamps.
+        let initialZoom;
+        map.addListener('idle', () => {
+            // Wait for OverlayView to attach before measuring label sizes.
+            requestAnimationFrame(() => {
+                if (callouts.some(c => !c.overlay.div)) return;
+                if (initialZoom == null) initialZoom = map.getZoom();
+                const thin = map.getZoom() < initialZoom;
+                const occupied = [];
+                const viewport = map.getDiv().getBoundingClientRect();
+                const gap = 8;
+                // Latest wins if even the two endpoints overlap, then launch,
+                // then the remaining labels in a stable chronological order.
+                const priority = [callouts[callouts.length - 1], ...callouts.slice(0, -1)];
+                for (const { marker, overlay } of priority) {
+                    const box = overlay.div.querySelector('.track-callout-box').getBoundingClientRect();
+                    const onScreen = box.right > viewport.left && box.left < viewport.right &&
+                        box.bottom > viewport.top && box.top < viewport.bottom;
+                    const overlaps = occupied.some(other =>
+                        box.left < other.right + gap && box.right + gap > other.left &&
+                        box.top < other.bottom + gap && box.bottom + gap > other.top);
+                    const visible = !thin || (onScreen && !overlaps);
+                    // Visibility preserves the dimensions of hidden labels so
+                    // they can be measured and restored on subsequent zooms.
+                    overlay.div.style.visibility = visible ? 'visible' : 'hidden';
+                    marker.setVisible(visible);
+                    if (visible && onScreen) occupied.push(box);
+                }
+            });
+        });
     }
 
     function fillSummary(s) {
