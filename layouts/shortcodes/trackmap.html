@@ -39,7 +39,13 @@
   }
 </style>
 
+<style>
+  #track-currents-credit { margin: 4px 0 10px; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
+  #track-currents-credit a { color: inherit; }
+</style>
 <div id="map" style="height: {{ $height }};"></div>
+<div id="track-currents-credit">Currents: <a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA CoastWatch</a></div>
+<script src="{{ "js/noaa-currents.js" | relURL }}"></script>
 
 {{ if $showTable }}
 <table>
@@ -150,6 +156,7 @@
         });
 
         drawMicrotransatLines(map);
+        drawCurrents(map);
 
         // One boat's export being missing or unreachable must not blank the map for
         // the others, so a failed fetch becomes null here and that boat is skipped.
