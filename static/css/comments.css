@@ -1,0 +1,59 @@
+/* bravepuffin.com comments widget styles. Neutral, inherits the page font. */
+#bp-comments {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+}
+#bp-comments .bp-title { margin: 0 0 0.75rem; }
+#bp-comments .bp-muted { opacity: 0.7; font-size: 0.9rem; }
+
+.bp-comment {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+}
+.bp-comment-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+.bp-comment-name { font-weight: 600; }
+.bp-comment-time { font-size: 0.8rem; opacity: 0.6; white-space: nowrap; }
+.bp-comment-body {
+  white-space: pre-wrap;   /* preserve line breaks without rendering HTML */
+  overflow-wrap: anywhere; /* long unbroken strings can't overflow */
+  line-height: 1.5;
+}
+
+#bp-comment-form { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+#bp-comment-form .bp-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
+#bp-comment-form input[type="text"],
+#bp-comment-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  font: inherit;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+}
+#bp-comment-form textarea { resize: vertical; }
+
+.bp-form-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.bp-btn {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.bp-btn:hover { border-color: currentColor; }
+.bp-btn:disabled { opacity: 0.5; cursor: default; }
+.bp-primary { border-color: currentColor; font-weight: 600; }
+
+/* Honeypot: kept in the DOM for bots, invisible and unfocusable for humans. */
+.bp-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }

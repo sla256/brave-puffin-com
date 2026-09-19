@@ -1,0 +1,43 @@
+{{- /*
+  Site override of the theme's Utterances partial: bravepuffin.com's own DIY
+  comments widget. The theme's single.html already gates this on
+  .Site.Params.comments.enabled and .Section == "posts"; here we additionally
+  require the post to opt in with `comments: true` in front matter.
+
+  Thread identity is a stable comment id: front-matter `comment_id` if set, else
+  the content filename (stable across title/URL changes). That id must be in the
+  backend allowlist (lambdas/public/manifest.json) or the API returns 404 --
+  regenerate it with the backend's scripts/gen-manifest.py after publishing.
+*/ -}}
+{{ if .Params.comments }}
+{{ $cid := .Params.comment_id | default .File.ContentBaseName }}
+{{- /* ?v=<content hash> so browsers never run a stale cached copy after a change */ -}}
+<link rel="stylesheet" href="/css/comments.css?v={{ substr (readFile "static/css/comments.css" | md5) 0 8 }}">
+<section id="bp-comments" data-api="{{ .Site.Params.comments.apiBase }}" data-post="{{ $cid }}" data-turnstile-sitekey="{{ .Site.Params.comments.turnstileSiteKey }}" aria-label="Comments">
+  <h3 class="bp-title">Comments</h3>
+  <div id="bp-comments-list"><p class="bp-muted">Loading comments…</p></div>
+  <button id="bp-load-more" class="bp-btn" type="button" hidden>Load more</button>
+  <form id="bp-comment-form" autocomplete="off" novalidate>
+    <h4 class="bp-title">Leave a comment</h4>
+    <p class="bp-muted">Comments are public, appear right away and are moderated. Use Contact link to delete.</p>
+    <label class="bp-label">Name
+      <input type="text" name="author_name" maxlength="80" required>
+    </label>
+    <label class="bp-label">Comment
+      <textarea name="body" maxlength="3000" rows="4" required></textarea>
+    </label>
+    {{- /* honeypot: hidden from humans, tempting to bots; server drops if filled */ -}}
+    <input type="text" name="website" tabindex="-1" autocomplete="off" class="bp-hp" aria-hidden="true">
+    {{- /* Cloudflare Turnstile renders here; hidden unless the visitor must interact */ -}}
+    <div id="bp-turnstile"></div>
+    <div class="bp-form-row">
+      <button type="submit" class="bp-btn bp-primary">Post comment</button>
+      <span id="bp-form-msg" class="bp-muted" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+</section>
+{{- with .Site.Params.comments.turnstileSiteKey }}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+{{- end }}
+<script src="/js/comments.js?v={{ substr (readFile "static/js/comments.js" | md5) 0 8 }}" defer></script>
+{{ end }}

@@ -1,6 +1,7 @@
 ---
 title: "Brave Puffin September 2026 update"
 date: 2026-09-15
+comments: true
 ---
 
 ### Busy summer: two Brave Puffin boats, multiple launches, one attempt in progress

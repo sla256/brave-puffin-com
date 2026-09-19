@@ -13,6 +13,14 @@ googleAnalytics = 'G-42NQX112R9'
   description = "Solar powered, long range autonomous boat"
   author = '...'
 
+  # DIY comments. `enabled` is the site master
+  # switch; each post also opts in with `comments: true` in its front matter.
+  [params.comments]
+    enabled = true
+    apiBase = "https://api.bravepuffin.com"
+    # Cloudflare Turnstile site key (public by design; the secret lives only in the backend).
+    turnstileSiteKey = "0x4AAAAAAE9GE2i4FhhOKGi9"
+
 
 [menu]
   [[menu.main]]

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Comments moderation</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, sans-serif; max-width: 820px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+    h1 { font-size: 1.4rem; }
+    button { font: inherit; padding: 0.35rem 0.7rem; border: 1px solid currentColor; border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin: 1rem 0; }
+    .c { padding: 0.75rem 0; border-bottom: 1px solid rgba(128,128,128,0.25); }
+    .c-head { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.85rem; opacity: 0.75; }
+    .c-name { font-weight: 600; opacity: 1; }
+    .c-body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.35rem 0; }
+    .c-actions { display: flex; gap: 0.5rem; }
+    .muted { opacity: 0.7; }
+    .tag { font-size: 0.75rem; border: 1px solid currentColor; border-radius: 999px; padding: 0 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Comments moderation</h1>
+  <div id="auth" class="row"><button id="signin">Sign in</button></div>
+  <div id="app" hidden>
+    <div class="row">
+      <label>View:
+        <select id="status">
+          <option value="approved">Live</option>
+          <option value="removed">Hidden</option>
+        </select>
+      </label>
+      <button id="refresh">Refresh</button>
+      <button id="signout">Sign out</button>
+      <span id="msg" class="muted" role="status"></span>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+    // Public config (non-secret): from the comments backend deploy outputs.
+    var CFG = {
+      apiBase: "https://api.bravepuffin.com",
+      cognitoDomain: "bravepuffin-com-comments.auth.us-east-2.amazoncognito.com",
+      clientId: "4b96t5q9q4440srrdofeqcks1o",
+      scope: "openid email"
+    };
+    var redirectUri = window.location.origin + "/admin/";
+    var TOKEN_KEY = "bp_admin_access_token";
+
+    var authEl = document.getElementById("auth");
+    var appEl = document.getElementById("app");
+    var listEl = document.getElementById("list");
+    var msgEl = document.getElementById("msg");
+    var statusEl = document.getElementById("status");
+
+    function b64url(bytes) {
+      var s = btoa(String.fromCharCode.apply(null, new Uint8Array(bytes)));
+      return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+    function randomVerifier() {
+      var a = new Uint8Array(48); crypto.getRandomValues(a); return b64url(a);
+    }
+    function challenge(verifier) {
+      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)).then(b64url);
+    }
+
+    function login() {
+      var verifier = randomVerifier();
+      sessionStorage.setItem("bp_pkce_verifier", verifier);
+      challenge(verifier).then(function (chal) {
+        var url = "https://" + CFG.cognitoDomain + "/oauth2/authorize"
+          + "?response_type=code&client_id=" + encodeURIComponent(CFG.clientId)
+          + "&redirect_uri=" + encodeURIComponent(redirectUri)
+          + "&scope=" + encodeURIComponent(CFG.scope)
+          + "&code_challenge_method=S256&code_challenge=" + chal;
+        window.location.assign(url);
+      });
+    }
+
+    function exchangeCode(code) {
+      var verifier = sessionStorage.getItem("bp_pkce_verifier") || "";
+      var body = new URLSearchParams({
+        grant_type: "authorization_code",
+        client_id: CFG.clientId,
+        code: code,
+        redirect_uri: redirectUri,
+        code_verifier: verifier
+      });
+      return fetch("https://" + CFG.cognitoDomain + "/oauth2/token", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      }).then(function (r) {
+        if (!r.ok) throw new Error("token exchange failed");
+        return r.json();
+      }).then(function (tok) {
+        sessionStorage.setItem(TOKEN_KEY, tok.access_token);
+        sessionStorage.removeItem("bp_pkce_verifier");
+        history.replaceState({}, "", redirectUri); // strip ?code from the URL
+      });
+    }
+
+    function token() { return sessionStorage.getItem(TOKEN_KEY); }
+    function signOut() { sessionStorage.removeItem(TOKEN_KEY); show(); }
+
+    function api(method, path) {
+      return fetch(CFG.apiBase + path, {
+        method: method,
+        headers: { "authorization": "Bearer " + token() }
+      }).then(function (r) {
+        if (r.status === 401) { signOut(); throw new Error("session expired — sign in again"); }
+        if (!r.ok) return r.json().catch(function(){return {};}).then(function (d) { throw new Error(d.error || ("HTTP " + r.status)); });
+        return r.json().catch(function () { return {}; });
+      });
+    }
+
+    function fmt(iso) { try { return new Date(iso).toLocaleString(); } catch (e) { return iso; } }
+
+    function render(comments) {
+      listEl.innerHTML = "";
+      if (!comments.length) { listEl.innerHTML = '<p class="muted">Nothing here.</p>'; return; }
+      comments.forEach(function (c) {
+        var el = document.createElement("div"); el.className = "c";
+        var head = document.createElement("div"); head.className = "c-head";
+        var name = document.createElement("span"); name.className = "c-name"; name.textContent = c.author_name;
+        var meta = document.createElement("span"); meta.textContent = "[" + c.post_id + "] " + fmt(c.created_at);
+        head.appendChild(name); head.appendChild(meta);
+        var body = document.createElement("div"); body.className = "c-body"; body.textContent = c.body;
+        var actions = document.createElement("div"); actions.className = "c-actions";
+        if (c.status === "approved") actions.appendChild(actionBtn("Hide", "Hidden", "POST", "/admin/comments/" + c.id + "/remove"));
+        if (c.status === "removed") actions.appendChild(actionBtn("Restore", "Restored", "POST", "/admin/comments/" + c.id + "/restore"));
+        actions.appendChild(actionBtn("Delete", "Deleted", "DELETE", "/admin/comments/" + c.id, true));
+        el.appendChild(head); el.appendChild(body); el.appendChild(actions);
+        listEl.appendChild(el);
+      });
+    }
+
+    function actionBtn(label, doneText, method, path, confirmFirst) {
+      var b = document.createElement("button");
+      b.textContent = label;
+      b.addEventListener("click", function () {
+        if (confirmFirst && !window.confirm("Permanently delete this comment?")) return;
+        b.disabled = true; msgEl.textContent = label + "…";
+        api(method, path).then(function () { msgEl.textContent = doneText + "."; loadList(); })
+          .catch(function (e) { msgEl.textContent = e.message; b.disabled = false; });
+      });
+      return b;
+    }
+
+    function loadList() {
+      msgEl.textContent = "Loading…";
+      api("GET", "/admin/comments?status=" + statusEl.value)
+        .then(function (d) { render(d.comments || []); msgEl.textContent = ""; })
+        .catch(function (e) { msgEl.textContent = e.message; });
+    }
+
+    function show() {
+      var authed = !!token();
+      authEl.hidden = authed;
+      appEl.hidden = !authed;
+      if (authed) loadList();
+    }
+
+    document.getElementById("signin").addEventListener("click", login);
+    document.getElementById("signout").addEventListener("click", signOut);
+    document.getElementById("refresh").addEventListener("click", loadList);
+    statusEl.addEventListener("change", loadList);
+
+    var code = new URLSearchParams(window.location.search).get("code");
+    if (code) {
+      exchangeCode(code).then(show).catch(function (e) { msgEl.textContent = e.message; show(); });
+    } else {
+      show();
+    }
+  })();
+  </script>
+</body>
+</html>
