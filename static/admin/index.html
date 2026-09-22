@@ -18,6 +18,9 @@
     .c-body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.35rem 0; }
     .c-actions { display: flex; gap: 0.5rem; }
     .muted { opacity: 0.7; }
+    [hidden] { display: none !important; } /* must beat .row's display:flex */
+    .switch { padding: 0.6rem 0.8rem; border: 1px solid rgba(128,128,128,0.4); border-radius: 6px; }
+    .switch.off { border-color: #c0392b; }
     .tag { font-size: 0.75rem; border: 1px solid currentColor; border-radius: 999px; padding: 0 0.5rem; }
   </style>
 </head>
@@ -25,6 +28,10 @@
   <h1>Comments moderation</h1>
   <div id="auth" class="row"><button id="signin">Sign in</button></div>
   <div id="app" hidden>
+    <div class="row switch" id="switch">
+      <span>Posting new comments: <strong id="posting-state">…</strong></span>
+      <button id="posting-toggle" disabled>…</button>
+    </div>
     <div class="row">
       <label>View:
         <select id="status">
@@ -108,10 +115,13 @@
     function token() { return sessionStorage.getItem(TOKEN_KEY); }
     function signOut() { sessionStorage.removeItem(TOKEN_KEY); show(); }
 
-    function api(method, path) {
+    function api(method, path, body) {
+      var headers = { "authorization": "Bearer " + token() };
+      if (body !== undefined) headers["content-type"] = "application/json";
       return fetch(CFG.apiBase + path, {
         method: method,
-        headers: { "authorization": "Bearer " + token() }
+        headers: headers,
+        body: body === undefined ? undefined : JSON.stringify(body)
       }).then(function (r) {
         if (r.status === 401) { signOut(); throw new Error("session expired — sign in again"); }
         if (!r.ok) return r.json().catch(function(){return {};}).then(function (d) { throw new Error(d.error || ("HTTP " + r.status)); });
@@ -152,6 +162,38 @@
       return b;
     }
 
+    // Site-wide posting switch (settings table). The public side caches it ~30 s.
+    var postingEnabled = null;
+    var switchEl = document.getElementById("switch");
+    var postingStateEl = document.getElementById("posting-state");
+    var postingBtn = document.getElementById("posting-toggle");
+
+    function renderPosting(enabled) {
+      postingEnabled = enabled;
+      postingStateEl.textContent = enabled ? "ON" : "OFF (comments closed site-wide)";
+      postingBtn.textContent = enabled ? "Turn off" : "Turn on";
+      switchEl.classList.toggle("off", !enabled);
+      postingBtn.disabled = false;
+    }
+
+    function loadSettings() {
+      api("GET", "/admin/settings")
+        .then(function (d) { renderPosting(d.posting_enabled !== false); })
+        .catch(function (e) { postingStateEl.textContent = "unknown (" + e.message + ")"; });
+    }
+
+    postingBtn.addEventListener("click", function () {
+      var next = !postingEnabled;
+      if (!next && !window.confirm("Close commenting on the whole site? Existing comments stay visible.")) return;
+      postingBtn.disabled = true;
+      api("POST", "/admin/settings", { posting_enabled: next })
+        .then(function (d) {
+          renderPosting(d.posting_enabled);
+          msgEl.textContent = "Posting turned " + (d.posting_enabled ? "on" : "off") + " (takes up to 30 s).";
+        })
+        .catch(function (e) { msgEl.textContent = e.message; postingBtn.disabled = false; });
+    });
+
     function loadList() {
       msgEl.textContent = "Loading…";
       api("GET", "/admin/comments?status=" + statusEl.value)
@@ -163,7 +205,7 @@
       var authed = !!token();
       authEl.hidden = authed;
       appEl.hidden = !authed;
-      if (authed) loadList();
+      if (authed) { loadSettings(); loadList(); }
     }
 
     document.getElementById("signin").addEventListener("click", login);

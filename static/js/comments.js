@@ -13,6 +13,13 @@
   var moreBtn = document.getElementById("bp-load-more");
   var form = document.getElementById("bp-comment-form");
   var msgEl = document.getElementById("bp-form-msg");
+  var closedEl = document.getElementById("bp-closed");
+
+  // Owner's site-wide switch (reported by every GET): hide the form when closed.
+  function setPostingOpen(open) {
+    form.hidden = !open;
+    closedEl.hidden = open;
+  }
 
   var nextCursor = null;
   var started = false;
@@ -85,6 +92,7 @@
       .then(function (data) {
         if (!started) { listEl.innerHTML = ""; started = true; }
         (data.comments || []).forEach(function (c) { listEl.appendChild(renderComment(c)); });
+        if (data.posting_enabled === false) setPostingOpen(false);
         nextCursor = data.next_cursor || null;
         moreBtn.hidden = !nextCursor;
         if (!listEl.children.length) {
@@ -132,6 +140,7 @@
       .then(function (r) {
         if (r.status === 201 || r.status === 202) return {};
         if (r.status === 429 || r.status === 503) throw new Error("the site is busy, please try again in a minute");
+        if (r.status === 403) { setPostingOpen(false); throw new Error("comments are closed"); }
         return r.json().then(function (d) { throw new Error(d && d.error ? d.error : "error"); });
       })
       .then(function () {

@@ -57,3 +57,6 @@
 
 /* Honeypot: kept in the DOM for bots, invisible and unfocusable for humans. */
 .bp-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+/* `hidden` must win over the display rules above (form, buttons) */
+#bp-comments [hidden] { display: none !important; }
