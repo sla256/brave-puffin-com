@@ -40,12 +40,19 @@
 </style>
 
 <style>
-  #track-currents-credit { margin: 4px 0 10px; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
+  .track-map-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 10px; }
+  #track-currents-credit { margin-left: auto; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
   #track-currents-credit a { color: inherit; }
+  #track-wind-control { display: flex; align-items: center; gap: 4px; width: fit-content; margin: 0; color: #666; font-size: 10px; line-height: 1.5; cursor: pointer; }
+  #track-wind-toggle { margin: 0; }
 </style>
 <div id="map" style="height: {{ $height }};"></div>
+<div class="track-map-footer">
+<label id="track-wind-control"><input id="track-wind-toggle" type="checkbox" checked><span id="track-wind-status">Wind</span></label>
 <div id="track-currents-credit">Currents: <a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA CoastWatch</a></div>
+</div>
 <script src="{{ "js/noaa-currents.js" | relURL }}"></script>
+<script src="{{ "js/wind.js" | relURL }}"></script>
 
 {{ if $showTable }}
 <table>
@@ -157,6 +164,7 @@
 
         drawMicrotransatLines(map);
         drawCurrents(map);
+        drawWind(map, document.getElementById('track-wind-status'), document.getElementById('track-wind-toggle'));
 
         // One boat's export being missing or unreachable must not blank the map for
         // the others, so a failed fetch becomes null here and that boat is skipped.
@@ -266,7 +274,15 @@
             }
         }
 
-        if (chosen[chosen.length - 1] !== last) chosen.push(last);
+        if (chosen[chosen.length - 1] !== last) {
+            // The latest point takes priority over a nearby cadence label.
+            // Preserve launch and leave the older cadence unchanged.
+            if (chosen.length > 1 &&
+                last.epoch - chosen[chosen.length - 1].epoch < CALLOUT_INTERVAL_HOURS * 1800) {
+                chosen.pop();
+            }
+            chosen.push(last);
+        }
         return chosen;
     }
 

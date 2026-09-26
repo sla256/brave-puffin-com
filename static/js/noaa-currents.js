@@ -12,7 +12,7 @@ const CURRENTS_SOURCES = {
 
 };
 
-const CURRENTS_PARTICLE_COUNT = 375;
+const CURRENTS_PARTICLE_COUNT = 413;
 const CURRENTS_SPEED_SCALE = 12;   // px/frame moved per m/s of current, at 60fps
 const CURRENTS_FADE = 0.02;        // canvas repaint alpha per frame - lower means longer trails
 const CURRENTS_PARTICLE_COLOR = '#e6edf3'; // uniform colour; motion alone conveys speed
