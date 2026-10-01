@@ -94,7 +94,7 @@
       const ctx = flow.getContext('2d'), projection = overlay.getProjection();
       ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = `rgba(0,0,0,${1 - Math.exp(-3 * dt)})`;
       ctx.fillRect(0,0,width,height); ctx.globalCompositeOperation = 'source-over'; ctx.lineWidth = 1.2;
-      const count = Math.min(240, Math.round(width * height / 2200 * .6));
+      const count = Math.min(360, Math.round(width * height / 2200 * .9));
       while (particles.length < count) particles.push(spawn());
       particles.length = count;
       for (let i = 0; i < particles.length; i++) {

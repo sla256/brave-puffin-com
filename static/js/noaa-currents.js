@@ -12,7 +12,7 @@ const CURRENTS_SOURCES = {
 
 };
 
-const CURRENTS_PARTICLE_COUNT = 413;
+const CURRENTS_PARTICLE_COUNT = 619;
 const CURRENTS_SPEED_SCALE = 12;   // px/frame moved per m/s of current, at 60fps
 const CURRENTS_FADE = 0.02;        // canvas repaint alpha per frame - lower means longer trails
 const CURRENTS_PARTICLE_COLOR = '#e6edf3'; // uniform colour; motion alone conveys speed
@@ -72,17 +72,18 @@ function currentsFieldLoader() {
   };
 }
 
-// Always on. Retain the last good overlay if a background refresh fails.
-function drawCurrents(map) {
+// Load when enabled. Retain the last good overlay if a background refresh fails.
+function drawCurrents(map, checkbox) {
   const loadField = currentsFieldLoader();
   let overlay = null, updating = false, lastAttempt = 0;
 
   async function update() {
-    if (updating) return;
+    if (updating || !checkbox.checked) return;
     updating = true;
     lastAttempt = Date.now();
     try {
       const grid = await loadField('noaa');
+      if (!checkbox.checked) return;
       if (overlay) overlay.setVisible(false);
       overlay = new CurrentsOverlay(map, grid, {noLegend: true});
       overlay.setVisible(true);
@@ -97,6 +98,13 @@ function drawCurrents(map) {
   function refreshIfDue() {
     if (!document.hidden && Date.now() - lastAttempt >= 300000) update();
   }
+  checkbox.addEventListener('change', () => {
+    if (checkbox.checked) update();
+    else if (overlay) {
+      overlay.setVisible(false);
+      overlay = null;
+    }
+  });
   setInterval(refreshIfDue, 300000);
   document.addEventListener('visibilitychange', refreshIfDue);
   update();
