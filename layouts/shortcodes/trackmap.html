@@ -45,13 +45,13 @@
   .track-map-footer { position: relative; z-index: 1; display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 0 12px; margin: 4px 0 10px; }
   #track-currents-credit { display: flex; align-items: center; gap: 4px; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
   #track-currents-credit a { color: inherit; }
-  #track-wind-control, #track-cloud-control, #track-currents-control { display: flex; align-items: center; gap: 4px; width: fit-content; margin: 0; color: #666; font-size: 10px; line-height: 1.5; cursor: pointer; }
-  #track-wind-toggle, #track-cloud-toggle, #track-currents-toggle { margin: 0; }
+  #track-wind-control, #track-cloud-control, #track-water-control, #track-currents-control { display: flex; align-items: center; gap: 4px; width: fit-content; margin: 0; color: #666; font-size: 10px; line-height: 1.5; cursor: pointer; }
+  #track-wind-toggle, #track-cloud-toggle, #track-water-toggle, #track-currents-toggle { margin: 0; }
   #track-weather-status { color: #666; font-size: 10px; line-height: 1.5; }
   #track-weather-status { flex-basis: 100%; text-align: right; }
-  #track-wind-control, #track-cloud-control, #track-currents-control, #track-currents-credit a { touch-action: manipulation; }
+  #track-wind-control, #track-cloud-control, #track-water-control, #track-currents-control, #track-currents-credit a { touch-action: manipulation; }
   @media (any-pointer: coarse) {
-    #track-wind-control, #track-cloud-control, #track-currents-control, #track-currents-credit a { min-height: 34px; }
+    #track-wind-control, #track-cloud-control, #track-water-control, #track-currents-control, #track-currents-credit a { min-height: 34px; }
     #track-currents-credit a { display: flex; align-items: center; }
   }
 </style>
@@ -59,11 +59,13 @@
 <div class="track-map-footer">
 <label id="track-wind-control" for="track-wind-toggle"><input id="track-wind-toggle" type="checkbox"><span>Wind</span></label>
 <label id="track-cloud-control" for="track-cloud-toggle"><input id="track-cloud-toggle" type="checkbox"><span>Clouds</span></label>
+<label id="track-water-control" for="track-water-toggle" title="Measured water temperature along the boat track"><input id="track-water-toggle" type="checkbox"><span>Water</span></label>
 <div id="track-currents-credit"><label id="track-currents-control" for="track-currents-toggle"><input id="track-currents-toggle" type="checkbox"><span>Currents:</span></label><a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA</a></div>
 <span id="track-weather-status"></span>
 </div>
 <script src="{{ "js/noaa-currents.js" | relURL }}"></script>
 <script src="{{ "js/wind.js" | relURL }}"></script>
+<script src="{{ "js/water-temperature.js" | relURL }}"></script>
 
 {{ if $showTable }}
 <table>
@@ -354,33 +356,46 @@
             strokeOpacity: 0.45 * fade, strokeWeight: isPrimary ? 7 : 4, map, zIndex: 0
         });
 
-        new google.maps.Polyline({
+        const trackLine = new google.maps.Polyline({
             path, geodesic: true, strokeColor: TRACK_COLOR,
             strokeOpacity: fade, strokeWeight: isPrimary ? 4 : 2, map, zIndex: 1
         });
 
         if (!isPrimary) return;
 
+        const waterToggle = document.getElementById('track-water-toggle');
+        let waterOverlay = null;
+
         // Time callouts, on the focused boat only - two boats' worth would cover
         // the map.
         const callouts = [];
         let layoutFrame = null;
         const CalloutOverlay = makeCalloutOverlay(scheduleCalloutLayout);
-        for (const p of calloutPositions(positions)) {
-            const at = new google.maps.LatLng(p.lat, p.lng);
-            const marker = new google.maps.Marker({
-                position: at, map,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: '#ffffff', fillOpacity: 1,
-                    strokeColor: '#000000', strokeWeight: 1, scale: 3.5
-                },
-                zIndex: 2
-            });
-            const overlay = new CalloutOverlay(at, shortDateTime(p.epoch));
-            overlay.setMap(map);
-            callouts.push({ marker, overlay });
+        function rebuildCallouts(water) {
+            for (const {marker, overlay} of callouts) {
+                marker.setMap(null); overlay.setMap(null);
+            }
+            callouts.length = 0;
+            const samples = water ? positions.filter(TrackWaterTemperature.hasReading) : positions;
+            if (!samples.length) return;
+            for (const p of calloutPositions(samples)) {
+                const at = new google.maps.LatLng(p.lat, p.lng);
+                const marker = new google.maps.Marker({
+                    position: at, map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#ffffff', fillOpacity: 1,
+                        strokeColor: '#000000', strokeWeight: 1, scale: 3.5
+                    },
+                    zIndex: 2
+                });
+                const overlay = new CalloutOverlay(at, water ? TrackWaterTemperature.label(p) : shortDateTime(p.epoch));
+                overlay.setMap(map);
+                callouts.push({ marker, overlay });
+            }
+            scheduleCalloutLayout();
         }
+        rebuildCallouts(false);
 
         // Screen-space spacing applies from the first render, at every zoom.
         // Narrow maps need more breathing room between the fixed-size labels.
@@ -388,7 +403,7 @@
             if (layoutFrame !== null) return;
             layoutFrame = requestAnimationFrame(() => {
                 layoutFrame = null;
-                if (callouts.some(c => !c.overlay.div)) return;
+                if (!callouts.length || callouts.some(c => !c.overlay.div)) return;
                 const occupied = [];
                 const viewport = map.getDiv().getBoundingClientRect();
                 const gap = viewport.width < 600 ? 20 : 8;
@@ -410,6 +425,17 @@
                 }
             });
         }
+        function updateWater() {
+            const enabled = waterToggle.checked;
+            trackLine.setOptions({strokeColor: enabled ? '#8b949e' : TRACK_COLOR,
+                strokeOpacity: enabled ? .45 : fade});
+            if (enabled && !waterOverlay) waterOverlay = TrackWaterTemperature.createOverlay(map, positions);
+            if (waterOverlay) waterOverlay.setMap(enabled ? map : null);
+            rebuildCallouts(enabled);
+        }
+        waterToggle.addEventListener('change', updateWater);
+        if (waterToggle.checked) updateWater();
+
         map.addListener('idle', scheduleCalloutLayout);
         const resizeObserver = new ResizeObserver(scheduleCalloutLayout);
         resizeObserver.observe(map.getDiv());
