@@ -40,16 +40,27 @@
 </style>
 
 <style>
-  .track-map-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 10px; }
-  #track-currents-credit { display: flex; align-items: center; gap: 4px; margin-left: auto; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
+  /* Keep map controls and their hit areas inside the map, below the separate footer. */
+  .track-map-frame { position: relative; overflow: hidden; isolation: isolate; }
+  .track-map-footer { position: relative; z-index: 1; display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 0 12px; margin: 4px 0 10px; }
+  #track-currents-credit { display: flex; align-items: center; gap: 4px; color: #666; text-align: right; font-size: 10px; line-height: 1.5; }
   #track-currents-credit a { color: inherit; }
-  #track-wind-control, #track-currents-control { display: flex; align-items: center; gap: 4px; width: fit-content; margin: 0; color: #666; font-size: 10px; line-height: 1.5; cursor: pointer; }
-  #track-wind-toggle, #track-currents-toggle { margin: 0; }
+  #track-wind-control, #track-cloud-control, #track-currents-control { display: flex; align-items: center; gap: 4px; width: fit-content; margin: 0; color: #666; font-size: 10px; line-height: 1.5; cursor: pointer; }
+  #track-wind-toggle, #track-cloud-toggle, #track-currents-toggle { margin: 0; }
+  #track-weather-status { color: #666; font-size: 10px; line-height: 1.5; }
+  #track-weather-status { flex-basis: 100%; text-align: right; }
+  #track-wind-control, #track-cloud-control, #track-currents-control, #track-currents-credit a { touch-action: manipulation; }
+  @media (any-pointer: coarse) {
+    #track-wind-control, #track-cloud-control, #track-currents-control, #track-currents-credit a { min-height: 34px; }
+    #track-currents-credit a { display: flex; align-items: center; }
+  }
 </style>
-<div id="map" style="height: {{ $height }};"></div>
+<div class="track-map-frame"><div id="map" style="height: {{ $height }};"></div></div>
 <div class="track-map-footer">
-<label id="track-wind-control"><input id="track-wind-toggle" type="checkbox" checked><span id="track-wind-status">Wind</span></label>
-<div id="track-currents-credit"><label id="track-currents-control"><input id="track-currents-toggle" type="checkbox"><span>Currents:</span></label><a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA CoastWatch</a></div>
+<label id="track-wind-control" for="track-wind-toggle"><input id="track-wind-toggle" type="checkbox"><span>Wind</span></label>
+<label id="track-cloud-control" for="track-cloud-toggle"><input id="track-cloud-toggle" type="checkbox"><span>Clouds</span></label>
+<div id="track-currents-credit"><label id="track-currents-control" for="track-currents-toggle"><input id="track-currents-toggle" type="checkbox"><span>Currents:</span></label><a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA</a></div>
+<span id="track-weather-status"></span>
 </div>
 <script src="{{ "js/noaa-currents.js" | relURL }}"></script>
 <script src="{{ "js/wind.js" | relURL }}"></script>
@@ -164,7 +175,8 @@
 
         drawMicrotransatLines(map);
         drawCurrents(map, document.getElementById('track-currents-toggle'));
-        drawWind(map, document.getElementById('track-wind-status'), document.getElementById('track-wind-toggle'));
+        drawWeather(map, document.getElementById('track-weather-status'),
+            document.getElementById('track-wind-toggle'), document.getElementById('track-cloud-toggle'));
 
         // One boat's export being missing or unreachable must not blank the map for
         // the others, so a failed fetch becomes null here and that boat is skipped.
@@ -292,7 +304,7 @@
     // is offset in pixels, which keeps the callout the same size at any zoom.
     const CALLOUT_RISE_PX = 26;
 
-    function makeCalloutOverlay() {
+    function makeCalloutOverlay(onLayout) {
         return class CalloutOverlay extends google.maps.OverlayView {
             constructor(position, text) {
                 super();
@@ -303,6 +315,7 @@
             onAdd() {
                 this.div = document.createElement('div');
                 this.div.className = 'track-callout';
+                this.div.style.visibility = 'hidden';
                 this.div.innerHTML =
                     '<svg class="track-callout-line" width="1" height="1">' +
                     '<line x1="0" y1="0" x2="0" y2="-' + CALLOUT_RISE_PX + '" ' +
@@ -316,6 +329,7 @@
                 const p = this.getProjection().fromLatLngToDivPixel(this.position);
                 this.div.style.left = p.x + 'px';
                 this.div.style.top = p.y + 'px';
+                onLayout();
             }
 
             onRemove() {
@@ -349,8 +363,9 @@
 
         // Time callouts, on the focused boat only - two boats' worth would cover
         // the map.
-        const CalloutOverlay = makeCalloutOverlay();
         const callouts = [];
+        let layoutFrame = null;
+        const CalloutOverlay = makeCalloutOverlay(scheduleCalloutLayout);
         for (const p of calloutPositions(positions)) {
             const at = new google.maps.LatLng(p.lat, p.lng);
             const marker = new google.maps.Marker({
@@ -367,18 +382,16 @@
             callouts.push({ marker, overlay });
         }
 
-        // Keep the original density at the initial fitted zoom and closer. Only
-        // thin that same set when zooming out; never add extra timestamps.
-        let initialZoom;
-        map.addListener('idle', () => {
-            // Wait for OverlayView to attach before measuring label sizes.
-            requestAnimationFrame(() => {
+        // Screen-space spacing applies from the first render, at every zoom.
+        // Narrow maps need more breathing room between the fixed-size labels.
+        function scheduleCalloutLayout() {
+            if (layoutFrame !== null) return;
+            layoutFrame = requestAnimationFrame(() => {
+                layoutFrame = null;
                 if (callouts.some(c => !c.overlay.div)) return;
-                if (initialZoom == null) initialZoom = map.getZoom();
-                const thin = map.getZoom() < initialZoom;
                 const occupied = [];
                 const viewport = map.getDiv().getBoundingClientRect();
-                const gap = 8;
+                const gap = viewport.width < 600 ? 20 : 8;
                 // Latest wins if even the two endpoints overlap, then launch,
                 // then the remaining labels in a stable chronological order.
                 const priority = [callouts[callouts.length - 1], ...callouts.slice(0, -1)];
@@ -389,15 +402,18 @@
                     const overlaps = occupied.some(other =>
                         box.left < other.right + gap && box.right + gap > other.left &&
                         box.top < other.bottom + gap && box.bottom + gap > other.top);
-                    const visible = !thin || (onScreen && !overlaps);
-                    // Visibility preserves the dimensions of hidden labels so
-                    // they can be measured and restored on subsequent zooms.
+                    const visible = onScreen && !overlaps;
+                    // Visibility preserves dimensions so labels can return when space opens up.
                     overlay.div.style.visibility = visible ? 'visible' : 'hidden';
-                    marker.setVisible(visible);
-                    if (visible && onScreen) occupied.push(box);
+                    if (marker.getVisible() !== visible) marker.setVisible(visible);
+                    if (visible) occupied.push(box);
                 }
             });
-        });
+        }
+        map.addListener('idle', scheduleCalloutLayout);
+        const resizeObserver = new ResizeObserver(scheduleCalloutLayout);
+        resizeObserver.observe(map.getDiv());
+        scheduleCalloutLayout();
     }
 
     function fillSummary(s) {
