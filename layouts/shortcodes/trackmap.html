@@ -60,10 +60,10 @@
 <label id="track-wind-control" for="track-wind-toggle"><input id="track-wind-toggle" type="checkbox"><span>Wind</span></label>
 <label id="track-cloud-control" for="track-cloud-toggle"><input id="track-cloud-toggle" type="checkbox"><span>Clouds</span></label>
 <label id="track-water-control" for="track-water-toggle" title="Measured water temperature along the boat track"><input id="track-water-toggle" type="checkbox"><span>Water</span></label>
-<div id="track-currents-credit"><label id="track-currents-control" for="track-currents-toggle"><input id="track-currents-toggle" type="checkbox"><span>Currents:</span></label><a href="https://coastwatch.noaa.gov/cwn/products/sea-level-anomaly-and-geostrophic-currents-multi-mission-global-optimal-interpolation.html" target="_blank" rel="noopener">NOAA</a></div>
+<div id="track-currents-credit"><label id="track-currents-control" for="track-currents-toggle"><input id="track-currents-toggle" type="checkbox"><span>Currents:</span></label><a href="https://www.ecmwf.int/en/forecasts/datasets/open-data" target="_blank" rel="noopener">ECMWF</a></div>
 <span id="track-weather-status"></span>
 </div>
-<script src="{{ "js/noaa-currents.js" | relURL }}"></script>
+<script src="{{ "js/currents.js" | relURL }}"></script>
 <script src="{{ "js/wind.js" | relURL }}"></script>
 <script src="{{ "js/water-temperature.js" | relURL }}"></script>
 
@@ -79,6 +79,9 @@
 <tr><th>Onboard temperature, C</th><td><div id="onboard-temp"></div></td></tr>
 <tr><th>Water temperature, C</th><td><div id="water-temp"></div></td></tr>
 <tr><th>Onboard humidity, %</th><td><div id="onboard-humidity"></div></td></tr>
+<tr><th>Distance to finish (WP 11), km</th><td><div id="distance-to-finish"></div></td></tr>
+<tr><th>Progress toward finish - last 24h, km</th><td><div id="progress-24h"></div></td></tr>
+<tr><th>Progress toward finish - last 7 days, km</th><td><div id="progress-7d"></div></td></tr>
 <tr><th>Distance to next waypoint, km</th><td><div id="distance-to-next"></div></td></tr>
 </table>
 {{ end }}
@@ -131,6 +134,41 @@
             { lat: 25.0, lng: -22.0 },
         ],
     };
+
+    // Great-circle (haversine) distance in km between two {lat, lng} points.
+    const EARTH_RADIUS_KM = 6371.0088;
+    const toRad = d => d * Math.PI / 180;
+
+    function distanceKm(a, b) {
+        const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+        const h = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+        return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+
+    // The route's final target; the remaining distance is measured to this waypoint.
+    const FINISH_WAYPOINT_INDEX = 11;
+
+    // Remaining distance to the finish waypoint, and how much closer the boat got
+    // over the last 24h / 7 days, measured back from the latest position. The
+    // baseline is the latest fix at or before the cutoff, or the launch fix when
+    // the track is younger than the window.
+    function fillFinishProgress(route, positions) {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        const wp = route?.waypoints?.[FINISH_WAYPOINT_INDEX];
+        if (!wp || !positions || !positions.length) return;
+        const target = { lat: wp.lat, lng: wp.lon };
+        const sorted = positions.slice().sort((a, b) => a.epoch - b.epoch);
+        const last = sorted[sorted.length - 1];
+        const remaining = distanceKm(last, target);
+        set('distance-to-finish', Math.round(remaining));
+        for (const [id, hours] of [['progress-24h', 24], ['progress-7d', 168]]) {
+            const cutoff = last.epoch - hours * 3600;
+            let base = sorted[0];
+            for (const p of sorted) { if (p.epoch <= cutoff) base = p; else break; }
+            set(id, Math.round(distanceKm(base, target) - remaining));
+        }
+    }
 
     // Draws both Microtransat boundary lines as dashed geodesic polylines with a
     // label at the northern end. Called once at map init - these never change.
@@ -197,6 +235,7 @@
         const lead = loaded.find(d => d);
         if (lead) {
             fillSummary(lead.summary);
+            fillFinishProgress(lead.route, lead.positions);
             fitToMission(lead.route, lead.positions);
         }
     }
