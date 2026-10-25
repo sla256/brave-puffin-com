@@ -60,3 +60,24 @@
 
 /* `hidden` must win over the display rules above (form, buttons) */
 #bp-comments [hidden] { display: none !important; }
+
+.bp-author-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  vertical-align: middle;
+}
+.bp-replies:not(:empty) {
+  margin: 0.75rem 0 0 clamp(0.5rem, 3vw, 1.5rem);
+  padding-left: clamp(0.5rem, 3vw, 1rem);
+  border-left: 2px solid rgba(128, 128, 128, 0.35);
+}
+.bp-replies .bp-comment:last-child { border-bottom: 0; padding-bottom: 0; }
+.bp-comment-name { overflow-wrap: anywhere; min-width: 0; }
+@media (max-width: 480px) {
+  .bp-comment-head { flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+}

@@ -17,6 +17,10 @@
     .c-name { font-weight: 600; opacity: 1; }
     .c-body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.35rem 0; }
     .c-actions { display: flex; gap: 0.5rem; }
+    .reply-form { margin: 0.75rem 0; }
+    .reply-form label { display: block; font-weight: 600; }
+    .reply-form textarea { display: block; box-sizing: border-box; width: 100%; min-height: 7rem; margin: 0.5rem 0; padding: 0.5rem; font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 4px; resize: vertical; }
+    .c-reply { margin-left: 1rem; border-left: 2px solid rgba(128,128,128,0.35); padding-left: 0.75rem; }
     .muted { opacity: 0.7; }
     [hidden] { display: none !important; } /* must beat .row's display:flex */
     .switch { padding: 0.6rem 0.8rem; border: 1px solid rgba(128,128,128,0.4); border-radius: 6px; }
@@ -131,13 +135,61 @@
 
     function fmt(iso) { try { return new Date(iso).toLocaleString(); } catch (e) { return iso; } }
 
+    var replyDrafts = new Map();
+
+    function replyForm(c, actions) {
+      var draft = replyDrafts.get(c.id);
+      if (!draft) { draft = { body: "", uuid: crypto.randomUUID(), open: false }; replyDrafts.set(c.id, draft); }
+      var form = document.createElement("form"); form.className = "reply-form"; form.hidden = !draft.open;
+      var label = document.createElement("label"); label.textContent = "Your reply (shown with an Author badge)";
+      var input = document.createElement("textarea"); input.maxLength = 3000; input.required = true;
+      input.value = draft.body; label.appendChild(input); form.appendChild(label);
+      input.addEventListener("input", function () { draft.body = input.value; });
+      var send = document.createElement("button"); send.type = "submit"; send.textContent = "Publish reply";
+      var cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel";
+      var row = document.createElement("div"); row.className = "row"; row.appendChild(send); row.appendChild(cancel); form.appendChild(row);
+      var message = document.createElement("p"); message.setAttribute("role", "status"); form.appendChild(message);
+      var open = document.createElement("button"); open.type = "button"; open.textContent = "Reply";
+      open.setAttribute("aria-expanded", String(draft.open));
+      open.addEventListener("click", function () { draft.open = true; form.hidden = false; open.setAttribute("aria-expanded", "true"); input.focus(); });
+      cancel.addEventListener("click", function () { draft.open = false; form.hidden = true; open.setAttribute("aria-expanded", "false"); open.focus(); });
+      actions.appendChild(open);
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (send.disabled || !input.value.trim()) return;
+        draft.body = input.value;
+        send.disabled = true; cancel.disabled = true; input.disabled = true;
+        message.textContent = "Publishing…";
+        api("POST", "/admin/comments/" + c.id + "/reply", {body: draft.body, submission_uuid: draft.uuid})
+          .then(function () {
+            draft.body = ""; draft.uuid = crypto.randomUUID(); draft.open = false;
+            input.value = ""; message.textContent = ""; form.hidden = true; open.setAttribute("aria-expanded", "false");
+            loadList();
+          })
+          .catch(function (e) { message.textContent = "Could not publish: " + e.message; })
+          .then(function () { send.disabled = false; cancel.disabled = false; input.disabled = false; });
+      });
+      return form;
+    }
+
     function render(comments) {
       listEl.innerHTML = "";
       if (!comments.length) { listEl.innerHTML = '<p class="muted">Nothing here.</p>'; return; }
-      comments.forEach(function (c) {
-        var el = document.createElement("div"); el.className = "c";
+      var ordered = [];
+      comments.filter(function (c) { return !c.parent_id; }).forEach(function (c) {
+        ordered.push(c);
+        comments.filter(function (r) { return r.parent_id === c.id; }).forEach(function (r) { ordered.push(r); });
+      });
+      comments.filter(function (c) { return c.parent_id && !comments.some(function (p) { return p.id === c.parent_id; }); }).forEach(function (c) { ordered.push(c); });
+      ordered.forEach(function (c) {
+        var el = document.createElement("div"); el.className = c.parent_id ? "c c-reply" : "c";
+        el.id = "comment-" + c.id;
         var head = document.createElement("div"); head.className = "c-head";
         var name = document.createElement("span"); name.className = "c-name"; name.textContent = c.author_name;
+        if (c.is_owner === true) {
+          var badge = document.createElement("span"); badge.className = "tag"; badge.textContent = "Author";
+          name.appendChild(document.createTextNode(" ")); name.appendChild(badge);
+        }
         var meta = document.createElement("span"); meta.textContent = "[" + c.post_id + "] " + fmt(c.created_at);
         head.appendChild(name); head.appendChild(meta);
         var body = document.createElement("div"); body.className = "c-body"; body.textContent = c.body;
@@ -146,6 +198,13 @@
         if (c.status === "removed") actions.appendChild(actionBtn("Restore", "Restored", "POST", "/admin/comments/" + c.id + "/restore"));
         actions.appendChild(actionBtn("Delete", "Deleted", "DELETE", "/admin/comments/" + c.id, true));
         el.appendChild(head); el.appendChild(body); el.appendChild(actions);
+        if (c.parent_id) {
+          var context = document.createElement("p"); context.className = "muted";
+          var parent = comments.find(function (p) { return p.id === c.parent_id; });
+          context.textContent = parent ? "Reply to " + parent.author_name : "Reply to a comment outside this view. Visible publicly only while the original comment is live.";
+          el.insertBefore(context, body);
+        }
+        if (c.status === "approved") el.appendChild(replyForm(c, actions));
         listEl.appendChild(el);
       });
     }

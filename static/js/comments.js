@@ -23,6 +23,8 @@
 
   var nextCursor = null;
   var started = false;
+  var loadedComments = new Map();
+  var loading = false;
   var submissionUuid = newUuid();
   var formShownAt = Date.now(); // spam check: the server drops instant submissions
 
@@ -68,11 +70,18 @@
   function renderComment(c) {
     var el = document.createElement("article");
     el.className = "bp-comment";
+    el.id = "comment-" + c.id;
     var head = document.createElement("div");
     head.className = "bp-comment-head";
     var name = document.createElement("span");
     name.className = "bp-comment-name";
     name.textContent = c.author_name;
+    if (c.is_owner === true) {
+      var badge = document.createElement("span");
+      badge.className = "bp-author-badge";
+      badge.textContent = "Author";
+      name.appendChild(badge);
+    }
     var time = document.createElement("time");
     time.className = "bp-comment-time";
     time.textContent = fmtDate(c.created_at);
@@ -86,12 +95,34 @@
     return el;
   }
 
+  function renderThreads() {
+    listEl.innerHTML = "";
+    var parents = new Map();
+    loadedComments.forEach(function (c) {
+      if (c.parent_id) return;
+      var el = renderComment(c);
+      var replies = document.createElement("div");
+      replies.className = "bp-replies";
+      el.appendChild(replies);
+      parents.set(c.id, replies);
+      listEl.appendChild(el);
+    });
+    loadedComments.forEach(function (c) {
+      if (c.parent_id && parents.has(c.parent_id)) {
+        parents.get(c.parent_id).appendChild(renderComment(c));
+      }
+    });
+  }
+
   function load() {
+    if (loading) return Promise.resolve();
+    loading = true; moreBtn.disabled = true;
     return fetch(commentsUrl(nextCursor))
       .then(function (r) { if (!r.ok) throw new Error("load"); return r.json(); })
       .then(function (data) {
         if (!started) { listEl.innerHTML = ""; started = true; }
-        (data.comments || []).forEach(function (c) { listEl.appendChild(renderComment(c)); });
+        (data.comments || []).forEach(function (c) { loadedComments.set(c.id, c); });
+        renderThreads();
         if (data.posting_enabled === false) setPostingOpen(false);
         nextCursor = data.next_cursor || null;
         moreBtn.hidden = !nextCursor;
@@ -101,11 +132,12 @@
       })
       .catch(function () {
         if (!started) listEl.innerHTML = '<p class="bp-muted">Comments couldn’t load right now.</p>';
-      });
+      })
+      .then(function () { loading = false; moreBtn.disabled = false; });
   }
 
   function refresh() {
-    nextCursor = null; started = false; listEl.innerHTML = "";
+    nextCursor = null; started = false; loadedComments.clear(); listEl.innerHTML = "";
     return load();
   }
 
